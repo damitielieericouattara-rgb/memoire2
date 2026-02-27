@@ -97,6 +97,7 @@
     <script type="module">
         import { init, showToast } from '../assets/js/modules/sx-shared.js';
         import { OrderSim } from '../assets/js/modules/sim-engine.js';
+        import API from '../assets/js/modules/api.js';
         init('suivi');
 
         const fmt = v => new Intl.NumberFormat('fr-FR').format(v);
@@ -110,28 +111,134 @@
         };
 
         // Get order id from URL
-        const params = new URLSearchParams(window.location.search);
+        const params  = new URLSearchParams(window.location.search);
         const orderId = params.get('id');
+
+        // Source de données (API ou simulation hors-ligne)
+        let DATA_MODE     = 'api';
+        let ORDER_LIST    = [];
+        let CURRENT_ORDER = null;
 
         // Leaflet map
         let map = null, driverMarker = null, warehouseMarker = null, destinMarker = null, routeLine = null;
+
+        async function loadData() {
+            try {
+                if (!orderId) {
+                    const r = await API.get('/api/commandes', { per_page: 50 });
+                    ORDER_LIST = (r.data || []).map(normalizeApiOrderListItem);
+                } else {
+                    const r = await API.get(`/api/commandes/${orderId}/tracking`);
+                    CURRENT_ORDER = normalizeApiOrderWithTracking(r.data);
+                }
+                DATA_MODE = 'api';
+                return;
+            } catch (e) {
+                // Fallback hors-ligne
+                DATA_MODE = 'sim';
+                if (!orderId) {
+                    ORDER_LIST = OrderSim.getAll();
+                } else {
+                    CURRENT_ORDER = OrderSim.getById(orderId);
+                }
+            }
+        }
+
+        function normalizeApiOrderListItem(o) {
+            return {
+                id: o.id,
+                order_number: o.order_number,
+                created_at: o.created_at,
+                status: o.status,
+                amount_ttc: o.amount_ttc
+            };
+        }
+
+        function normalizeApiOrderWithTracking(payload) {
+            const order    = payload.order || payload;
+            const tracking = payload.tracking || [];
+
+            const normalized = {
+                id: order.id,
+                order_number: order.order_number,
+                created_at: order.created_at,
+                status: order.status,
+                amount_ttc: order.amount_ttc,
+                items: order.items || [],
+                address: null,
+                tracking: {
+                    history: [],
+                    driver: null,
+                    deliveryZone: null,
+                    route: []
+                }
+            };
+
+            // Adresse (snapshot JSON)
+            try {
+                if (order.delivery_address_snap) {
+                    const snap = typeof order.delivery_address_snap === 'string'
+                        ? JSON.parse(order.delivery_address_snap)
+                        : order.delivery_address_snap;
+                    normalized.address = {
+                        zone: snap.city || 'Abidjan',
+                        address: snap.street || 'Adresse'
+                    };
+                    normalized.tracking.deliveryZone = {
+                        name: snap.city || 'Abidjan',
+                        lat: 5.3599,
+                        lng: -3.9892
+                    };
+                }
+            } catch (e) {}
+
+            // Historique
+            tracking.forEach(t => {
+                normalized.tracking.history.push({
+                    status: t.status,
+                    label: t.description ?: (STATUS_LABELS[t.status] || t.status),
+                    time: t.event_date
+                });
+            });
+
+            // Position livreur = dernier point avec coordonnées
+            const lastWithCoords = [...tracking].reverse().find(t => t.latitude && t.longitude);
+            if (lastWithCoords) {
+                normalized.tracking.driver = {
+                    name: 'Livreur SneakX',
+                    phone: '+225 07 00 00 00',
+                    rating: '4.7',
+                    lat: parseFloat(lastWithCoords.latitude),
+                    lng: parseFloat(lastWithCoords.longitude)
+                };
+            }
+
+            // Route simple entre entrepôt fictif et destination
+            const WAREHOUSE = { lat: 5.3484, lng: -4.0232 };
+            const dest = normalized.tracking.deliveryZone || { lat: 5.3599, lng: -3.9892 };
+            normalized.tracking.route = [
+                { lat: WAREHOUSE.lat, lng: WAREHOUSE.lng },
+                { lat: dest.lat, lng: dest.lng }
+            ];
+
+            return normalized;
+        }
 
         function initMap(order) {
             const t = order.tracking;
             if (!t) return;
 
-            // Decide center
-            const center = t.driver ? [t.driver.lat, t.driver.lng] : [5.3484, -4.0232];
+            const center = t.driver
+                ? [t.driver.lat, t.driver.lng]
+                : [5.3484, -4.0232];
 
             map = L.map('deliveryMap', { zoomControl: true }).setView(center, 13);
 
-            // Dark tile layer
             L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
                 attribution: '© OpenStreetMap contributors © CartoDB',
                 maxZoom: 19
             }).addTo(map);
 
-            // Warehouse marker
             const warehouseIcon = L.divIcon({
                 html: `<div style="background:#FF5C00;width:36px;height:36px;border-radius:50% 50% 50% 0;transform:rotate(-45deg);border:3px solid #fff;box-shadow:0 3px 12px rgba(0,0,0,.5)"><div style="transform:rotate(45deg);display:flex;align-items:center;justify-content:center;height:100%;font-size:14px">🏭</div></div>`,
                 iconSize: [36, 36], iconAnchor: [18, 36], className: ''
@@ -140,7 +247,6 @@
                 .addTo(map)
                 .bindPopup('<b>Entrepôt SneakX</b><br>Plateau, Abidjan');
 
-            // Destination marker
             if (t.deliveryZone) {
                 const destIcon = L.divIcon({
                     html: `<div style="background:#10b981;width:36px;height:36px;border-radius:50% 50% 50% 0;transform:rotate(-45deg);border:3px solid #fff;box-shadow:0 3px 12px rgba(0,0,0,.5)"><div style="transform:rotate(45deg);display:flex;align-items:center;justify-content:center;height:100%;font-size:14px">🏠</div></div>`,
@@ -151,14 +257,12 @@
                     .bindPopup(`<b>Adresse de livraison</b><br>${t.deliveryZone.name}, Abidjan`);
             }
 
-            // Draw route
             if (t.route && t.route.length) {
                 routeLine = L.polyline(t.route.map(p => [p.lat, p.lng]), {
                     color: '#FF5C00', weight: 3, opacity: .5, dashArray: '6 8'
                 }).addTo(map);
             }
 
-            // Driver marker (if in delivery)
             if (t.driver) {
                 updateDriverMarker(t.driver);
             }
@@ -182,8 +286,7 @@
             const root = document.getElementById('trackingRoot');
 
             if (!orderId) {
-                // Show all orders if no ID
-                const orders = OrderSim.getAll();
+                const orders = DATA_MODE === 'api' ? ORDER_LIST : OrderSim.getAll();
                 if (!orders.length) {
                     root.innerHTML = `<div class="no-order">
                         <i class="fas fa-box-open"></i>
@@ -214,7 +317,7 @@
                 return;
             }
 
-            const order = OrderSim.getById(orderId);
+            const order = DATA_MODE === 'api' ? CURRENT_ORDER : OrderSim.getById(orderId);
             if (!order) {
                 root.innerHTML = `<div class="no-order">
                     <i class="fas fa-search"></i>
@@ -225,21 +328,22 @@
                 return;
             }
 
-            const t = order.tracking || {};
-            const hasDriver = order.status === 'IN_DELIVERY' && t.driver;
+            const t           = order.tracking || {};
+            const hasDriver   = order.status === 'IN_DELIVERY' && t.driver;
             const isDelivered = order.status === 'DELIVERED';
             const isCancelled = order.status === 'CANCELLED';
-            const canTrack = ['SHIPPED', 'IN_DELIVERY'].includes(order.status);
+            const canTrack    = ['SHIPPED', 'IN_DELIVERY'].includes(order.status);
 
-            // ETA calculation
-            const etaLabel = isDelivered ? 'Livré !' : isCancelled ? 'Annulée' : hasDriver ? '~20 min' : 'Sous 2 jours';
+            const etaLabel = isDelivered ? 'Livré !'
+                : isCancelled ? 'Annulée'
+                : hasDriver ? '~20 min'
+                : 'Sous 2 jours';
 
-            // Build timeline from tracking history
-            const FLOW = ['RECEIVED', 'PREPARING', 'SHIPPED', 'IN_DELIVERY', 'DELIVERED'];
+            const FLOW       = ['RECEIVED', 'PREPARING', 'SHIPPED', 'IN_DELIVERY', 'DELIVERED'];
             const currentIdx = FLOW.indexOf(order.status);
-            const timeline = FLOW.filter(s => s !== 'DELIVERED' || isDelivered).map((s, i) => {
+            const timeline   = FLOW.filter(s => s !== 'DELIVERED' || isDelivered).map((s, i) => {
                 const historyItem = (t.history || []).find(h => h.status === s);
-                const done = i < currentIdx || (isDelivered && s === 'DELIVERED');
+                const done   = i < currentIdx || (isDelivered && s === 'DELIVERED');
                 const active = i === currentIdx && !isDelivered;
                 return { status: s, label: STATUS_LABELS[s] || s, done, active, time: historyItem?.time };
             });
@@ -318,11 +422,10 @@
                 </div>
             </div>`;
 
-            // Init map after DOM is ready
             if (canTrack || isDelivered) {
                 setTimeout(() => {
                     initMap(order);
-                    if (hasDriver) startDriverAnimation(order.id);
+                    if (DATA_MODE === 'sim' && hasDriver) startDriverAnimation(order.id);
                 }, 100);
             }
         }
@@ -338,12 +441,18 @@
             }, 3000);
         }
 
-        // Listen for live updates
+        // Listen for live updates (simulation uniquement)
         window.addEventListener('sx-order-update', (e) => {
-            if (!orderId || e.detail.orderId === orderId) render();
+            if (DATA_MODE === 'sim' && (!orderId || e.detail.orderId === orderId)) {
+                CURRENT_ORDER = OrderSim.getById(e.detail.orderId);
+                render();
+            }
         });
 
-        render();
+        window.addEventListener('DOMContentLoaded', async () => {
+            await loadData();
+            render();
+        });
     </script>
 </body>
 </html>

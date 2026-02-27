@@ -220,9 +220,13 @@
         async function loadRecos() {
             const c = document.getElementById('recoContainer');
             try {
-                const r = await API.get('/api/produits', { per_page:4, sort:'popularity_score', order:'DESC' });
+                // D’abord tenter les recommandations personnalisées backend
+                const r = await API.get('/api/recommandations');
                 const products = r.data || [];
-                if (!products.length) { c.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:20px;color:var(--text2)">Aucun produit disponible</div>'; return; }
+                if (!products.length) {
+                    c.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:20px;color:var(--text2)">Aucune recommandation pour le moment. Parcourez le catalogue pour entraîner votre profil.</div>';
+                    return;
+                }
                 c.innerHTML = products.map((p,i) => {
                     const img = p.image_url || IMGS[i % IMGS.length];
                     const price = (p.promo_price && p.promo_price < p.price) ? p.promo_price : p.price;

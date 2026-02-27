@@ -39,6 +39,19 @@ class ProduitController extends Controller {
         $params            = $this->getQueryParams();
         $params['q']       = $query;
         $results           = $this->produitModel->search($params);
+        // Journalise la recherche pour le profil d’achat (non bloquant)
+        try {
+            if ($this->getUser()) {
+                $service = new RecommandationService();
+                $service->logUserAction(
+                    $this->getUser()['id'],
+                    null,
+                    'SEARCH',
+                    ['value' => $query]
+                );
+            }
+        } catch (Exception $e) {}
+
         Response::success($results, count($results) . ' résultat(s)');
     }
 
@@ -50,8 +63,15 @@ class ProduitController extends Controller {
 
     public function recommendations() {
         $user = $this->getUser();
-        // Simplifié : retourne les produits populaires
-        $products = $this->produitModel->getMostPopular(10);
-        Response::success($products, 'Recommandations');
+        if (!$user) {
+            // Sans profil, on retombe sur les produits populaires
+            $products = $this->produitModel->getMostPopular(10);
+            Response::success($products, 'Recommandations génériques');
+        }
+
+        // Profil d'achat basé sur l'historique de vues / ajout panier
+        $service  = new RecommandationService();
+        $products = $service->getRecommendations($user['id'], 10);
+        Response::success($products, 'Recommandations personnalisées');
     }
 }
