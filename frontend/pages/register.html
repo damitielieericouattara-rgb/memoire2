@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Inscription — E-Commerce Intelligent</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="../assets/css/style.css" />
+  <script>tailwind.config = { darkMode: 'class' }</script>
+</head>
+<body class="min-h-screen bg-gradient-to-br from-blue-50 to-violet-50 dark:from-slate-900 dark:to-slate-800 py-8 px-4">
+
+<button id="btn-theme" class="fixed top-4 right-4 btn btn-ghost text-xl z-50">🌙</button>
+
+<div class="max-w-lg mx-auto space-y-6">
+
+  <!-- Header -->
+  <div class="text-center space-y-2 pt-4">
+    <div class="text-4xl">🛍️</div>
+    <h1 class="text-2xl font-bold text-slate-800 dark:text-white">Créer un compte</h1>
+    <p class="text-sm text-slate-500">Rejoignez notre plateforme inclusive</p>
+  </div>
+
+  <!-- Mode d'accessibilité (sélecteur visuel) -->
+  <div class="card p-5 space-y-3">
+    <h2 class="font-semibold text-slate-700 dark:text-slate-200">🎯 Comment souhaitez-vous utiliser la plateforme ?</h2>
+    <div id="access-selector" class="grid grid-cols-2 gap-3">
+      <button data-mode="STANDARD" class="access-btn active card p-3 text-center text-sm font-medium transition-all border-2 border-primary bg-blue-50 dark:bg-blue-900/30">
+        💻<br/>Standard
+      </button>
+      <button data-mode="VOCAL" class="access-btn card p-3 text-center text-sm font-medium transition-all border-2 border-transparent">
+        🎙️<br/>Vocal<br/><span class="text-xs text-slate-400">Pour analphabètes</span>
+      </button>
+      <button data-mode="HAUTE_VISIBILITE" class="access-btn card p-3 text-center text-sm font-medium transition-all border-2 border-transparent">
+        👁<br/>Malvoyant<br/><span class="text-xs text-slate-400">Haute visibilité</span>
+      </button>
+      <button data-mode="LANGUE_SIGNES" class="access-btn card p-3 text-center text-sm font-medium transition-all border-2 border-transparent">
+        🤟<br/>Langue des signes
+      </button>
+    </div>
+  </div>
+
+  <!-- Formulaire -->
+  <div class="card p-8 space-y-5">
+    <div id="error-msg" class="hidden bg-red-50 dark:bg-red-900/30 text-red-700 dark:text-red-400 
+         border border-red-200 rounded-lg p-3 text-sm text-center"></div>
+    <div id="success-msg" class="hidden bg-green-50 dark:bg-green-900/30 text-green-700 dark:text-green-400 
+         border border-green-200 rounded-lg p-3 text-sm text-center"></div>
+
+    <form id="register-form" class="space-y-4" novalidate>
+      <div class="grid grid-cols-2 gap-4">
+        <div class="form-group">
+          <label class="form-label">Nom</label>
+          <input id="name" type="text" class="form-input" placeholder="KONÉ" required />
+        </div>
+        <div class="form-group">
+          <label class="form-label">Prénom</label>
+          <input id="first_name" type="text" class="form-input" placeholder="Amara" required />
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Email</label>
+        <input id="email" type="email" class="form-input" placeholder="vous@exemple.com" required />
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Téléphone (optionnel)</label>
+        <input id="phone" type="tel" class="form-input" placeholder="+225 07 00 00 00 00" />
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Mot de passe</label>
+        <input id="password" type="password" class="form-input" placeholder="Minimum 8 caractères" required />
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Confirmer le mot de passe</label>
+        <input id="password_confirm" type="password" class="form-input" placeholder="••••••••" required />
+      </div>
+
+      <label class="flex items-start gap-3 cursor-pointer">
+        <input type="checkbox" id="rgpd" class="mt-0.5 w-4 h-4 rounded" />
+        <span class="text-sm text-slate-600 dark:text-slate-300">
+          J'accepte les 
+          <a href="#" class="text-primary underline">conditions d'utilisation</a> 
+          et la politique de confidentialité
+        </span>
+      </label>
+
+      <input type="hidden" id="accessibility_mode" value="STANDARD" />
+
+      <button type="submit" id="btn-register" class="btn btn-primary w-full py-3 text-base">
+        <span id="btn-text">Créer mon compte</span>
+        <span id="btn-spin" class="hidden spinner !w-5 !h-5 !border-2 !border-white/30 !border-t-white"></span>
+      </button>
+    </form>
+  </div>
+
+  <!-- Inscription vocale -->
+  <div class="card p-5 space-y-3">
+    <h3 class="font-semibold text-slate-700 dark:text-slate-200">🎙️ Inscription guidée par la voix</h3>
+    <p class="text-sm text-slate-500">Vous ne pouvez pas taper ? Laissez la voix remplir le formulaire.</p>
+    <button id="btn-voice-register" class="btn btn-secondary w-full gap-2">
+      🎙️ Démarrer l'inscription vocale
+    </button>
+    <div id="voice-progress" class="hidden text-sm text-slate-500 dark:text-slate-400 
+         bg-slate-100 dark:bg-slate-700 rounded-lg p-3 space-y-1"></div>
+  </div>
+
+  <p class="text-center text-sm text-slate-500">
+    Déjà un compte ? 
+    <a href="login.html" class="font-semibold text-primary hover:underline">Se connecter</a>
+  </p>
+</div>
+
+<div id="toast-container" class="fixed top-4 right-16 z-50 flex flex-col gap-2"></div>
+
+<script type="module">
+  import { Auth } from '../assets/js/api.js';
+  import { speak, listenOnce, speechSupported } from '../assets/js/voice.js';
+  import { applyAutoTheme, toggleTheme, setUser, setWallet, showToast, redirectIfLoggedIn } from '../assets/js/app.js';
+
+  applyAutoTheme();
+  redirectIfLoggedIn();
+
+  document.getElementById('btn-theme').addEventListener('click', () => {
+    toggleTheme();
+    document.getElementById('btn-theme').textContent =
+      document.documentElement.classList.contains('dark') ? '☀️' : '🌙';
+  });
+
+  // ─── Sélecteur mode accessibilité ──────────────────────────────────────
+  document.querySelectorAll('.access-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.access-btn').forEach(b => {
+        b.classList.remove('border-primary', 'bg-blue-50', 'dark:bg-blue-900/30', 'active');
+        b.classList.add('border-transparent');
+      });
+      btn.classList.remove('border-transparent');
+      btn.classList.add('border-primary', 'bg-blue-50', 'active');
+      document.getElementById('accessibility_mode').value = btn.dataset.mode;
+    });
+  });
+
+  // ─── Soumission formulaire ──────────────────────────────────────────────
+  document.getElementById('register-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    await doRegister({
+      name:               document.getElementById('name').value.trim(),
+      first_name:         document.getElementById('first_name').value.trim(),
+      email:              document.getElementById('email').value.trim(),
+      phone:              document.getElementById('phone').value.trim(),
+      password:           document.getElementById('password').value,
+      password_confirm:   document.getElementById('password_confirm').value,
+      accessibility_mode: document.getElementById('accessibility_mode').value,
+      rgpd_consent:       document.getElementById('rgpd').checked ? 1 : 0,
+    });
+  });
+
+  async function doRegister(data) {
+    const btn    = document.getElementById('btn-register');
+    const txtBtn = document.getElementById('btn-text');
+    const spin   = document.getElementById('btn-spin');
+    const err    = document.getElementById('error-msg');
+    const ok     = document.getElementById('success-msg');
+
+    err.classList.add('hidden');
+    ok.classList.add('hidden');
+    btn.disabled = true;
+    txtBtn.classList.add('hidden');
+    spin.classList.remove('hidden');
+
+    try {
+      const res = await Auth.register(data);
+      if (res.success) {
+        ok.textContent = '✓ Compte créé ! Redirection vers la connexion…';
+        ok.classList.remove('hidden');
+        await speak('Votre compte a été créé avec succès. Bienvenue !');
+        setTimeout(() => window.location.href = 'login.html', 1800);
+      }
+    } catch (error) {
+      err.textContent = error.message || 'Erreur lors de l\'inscription.';
+      err.classList.remove('hidden');
+    } finally {
+      btn.disabled = false;
+      txtBtn.classList.remove('hidden');
+      spin.classList.add('hidden');
+    }
+  }
+
+  // ─── Inscription vocale ─────────────────────────────────────────────────
+  const voiceBtn = document.getElementById('btn-voice-register');
+  const voicePrg = document.getElementById('voice-progress');
+
+  if (!speechSupported) voiceBtn.style.display = 'none';
+
+  voiceBtn.addEventListener('click', async () => {
+    voicePrg.classList.remove('hidden');
+    voiceBtn.disabled = true;
+    const steps = [];
+
+    function log(msg) {
+      steps.push(msg);
+      voicePrg.innerHTML = steps.map(s => `<div>• ${s}</div>`).join('');
+    }
+
+    try {
+      await speak('Inscription guidée. Je vais vous poser quelques questions.');
+
+      await speak('Quel est votre nom de famille ?');
+      log('🎙️ Nom de famille...');
+      const nom = await listenOnce({ onInterim: t => log('Nom : ' + t) });
+      document.getElementById('name').value = nom;
+      log(`✓ Nom : ${nom}`);
+
+      await speak('Quel est votre prénom ?');
+      const prenom = await listenOnce();
+      document.getElementById('first_name').value = prenom;
+      log(`✓ Prénom : ${prenom}`);
+
+      await speak('Dites votre adresse email, lettre par lettre si nécessaire.');
+      const email = await listenOnce();
+      document.getElementById('email').value = email.replace(/ /g, '').toLowerCase();
+      log(`✓ Email : ${email}`);
+
+      await speak('Choisissez un mot de passe. Je ne l\'afficherai pas.');
+      const pwd = await listenOnce();
+      document.getElementById('password').value = pwd;
+      document.getElementById('password_confirm').value = pwd;
+      log('✓ Mot de passe défini');
+
+      document.getElementById('rgpd').checked = true;
+      log('✓ Conditions acceptées');
+
+      await speak('Parfait ! Je vais créer votre compte.');
+      log('⏳ Création du compte...');
+
+      await doRegister({
+        name: nom, first_name: prenom,
+        email: email.replace(/ /g, '').toLowerCase(),
+        password: pwd, password_confirm: pwd,
+        accessibility_mode: document.getElementById('accessibility_mode').value,
+        rgpd_consent: 1
+      });
+    } catch (err) {
+      log('❌ Erreur : ' + err.message);
+      await speak('Une erreur est survenue. Veuillez réessayer.');
+    } finally {
+      voiceBtn.disabled = false;
+    }
+  });
+</script>
+</body>
+</html>

@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Anti-fraude — SneakX Admin</title>
+<link rel="stylesheet" href="../../assets/css/admin.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<style>
+:root{--orange:#FF5C00;--orange-light:#FF7A2E;--orange-dim:rgba(255,92,0,0.12);--success:#10b981;--warning:#f59e0b;--danger:#ef4444;--info:#3b82f6;--bg:#0D0D0D;--bg2:#141414;--bg3:#1C1C1C;--bg4:#242424;--bg5:#2C2C2C;--text:#FFF;--text2:rgba(255,255,255,0.55);--text3:rgba(255,255,255,0.28);--border:rgba(255,255,255,0.08);--border2:rgba(255,255,255,0.14);--shadow:0 4px 24px rgba(0,0,0,0.5)}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Barlow',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;-webkit-font-smoothing:antialiased}
+a{text-decoration:none;color:inherit}
+.admin-wrap{display:flex;min-height:100vh}
+.sidebar{width:240px;background:var(--bg2);border-right:1px solid var(--border);position:fixed;top:0;left:0;height:100vh;z-index:100;display:flex;flex-direction:column;overflow-y:auto}
+.sb-logo{padding:24px 20px;border-bottom:1px solid var(--border);font-family:'Barlow Condensed',sans-serif;font-size:22px;font-weight:900;letter-spacing:2px;text-transform:uppercase}
+.sb-logo span{color:var(--orange)}
+.sb-logo small{display:block;font-size:10px;font-weight:600;letter-spacing:3px;color:var(--text3);margin-top:2px}
+.sb-nav{flex:1;padding:12px 0}
+.sb-section{font-size:10px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--text3);padding:16px 20px 6px}
+.sb-link{display:flex;align-items:center;gap:12px;padding:11px 20px;color:var(--text2);font-size:13px;font-weight:600;transition:.2s;border-left:3px solid transparent}
+.sb-link:hover,.sb-link.active{color:var(--text);background:var(--orange-dim);border-left-color:var(--orange)}
+.sb-link i{width:16px;text-align:center;color:var(--orange)}
+.sb-bottom{padding:16px;border-top:1px solid var(--border)}
+.sb-user{display:flex;align-items:center;gap:10px;padding:10px;border-radius:10px;background:var(--bg3);margin-bottom:10px}
+.sb-avatar{width:36px;height:36px;border-radius:50%;background:var(--orange);display:flex;align-items:center;justify-content:center;font-weight:800;font-size:14px;flex-shrink:0}
+.sb-user-name{font-weight:700;font-size:13px}
+.sb-user-role{font-size:10px;color:var(--orange);font-weight:700;text-transform:uppercase;letter-spacing:1px}
+.btn-logout{width:100%;padding:10px;background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.2);color:#ef4444;border-radius:8px;font-weight:700;font-size:12px;text-transform:uppercase;cursor:pointer;transition:.2s}
+.btn-logout:hover{background:rgba(239,68,68,.2)}
+.main{flex:1;margin-left:240px;padding:32px 36px}
+.page-header{margin-bottom:28px}
+.page-title{font-family:'Barlow Condensed',sans-serif;font-size:32px;font-weight:900;text-transform:uppercase;letter-spacing:-1px}
+.page-title span{color:var(--danger)}
+.page-sub{font-size:13px;color:var(--text2);margin-top:4px}
+/* Stats row */
+.stats-row{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:24px}
+.stat-card{background:var(--bg3);border:1px solid var(--border);border-radius:12px;padding:18px 20px}
+.stat-val{font-family:'Barlow Condensed',sans-serif;font-size:28px;font-weight:900}
+.stat-label{font-size:11px;color:var(--text2);margin-top:2px;font-weight:600;text-transform:uppercase;letter-spacing:.5px}
+/* Filters */
+.filters{display:flex;gap:12px;margin-bottom:20px;flex-wrap:wrap}
+.search-box{position:relative;flex:1;min-width:200px}
+.search-box input{width:100%;padding:10px 14px 10px 38px;background:var(--bg3);border:1px solid var(--border);border-radius:10px;color:var(--text);font-size:13px;outline:none;transition:.2s}
+.search-box input:focus{border-color:var(--danger)}
+.search-box i{position:absolute;left:12px;top:50%;transform:translateY(-50%);color:var(--text3);font-size:13px}
+.filter-select{padding:10px 14px;background:var(--bg3);border:1px solid var(--border);border-radius:10px;color:var(--text);font-size:13px;outline:none;cursor:pointer}
+/* Cards grid */
+.alerts-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:16px}
+.alert-card{background:var(--bg3);border:1px solid var(--border);border-radius:14px;overflow:hidden;transition:.25s}
+.alert-card:hover{border-color:rgba(239,68,68,.3);transform:translateY(-1px)}
+.alert-card.open-card{border-top:3px solid var(--danger)}
+.alert-card.reviewing-card{border-top:3px solid var(--warning)}
+.alert-card.resolved-card{border-top:3px solid var(--success)}
+.alert-card.false-card{border-top:3px solid var(--text3)}
+.ac-head{padding:14px 16px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--border)}
+.ac-type{font-family:'Barlow Condensed',sans-serif;font-size:14px;font-weight:800;text-transform:uppercase;letter-spacing:.5px}
+.badge{display:inline-flex;padding:3px 10px;border-radius:20px;font-size:10px;font-weight:800;letter-spacing:.5px;text-transform:uppercase}
+.badge-open{background:rgba(239,68,68,.12);color:var(--danger)}
+.badge-reviewing{background:rgba(245,158,11,.12);color:var(--warning)}
+.badge-resolved{background:rgba(16,185,129,.12);color:var(--success)}
+.badge-false_positive{background:rgba(255,255,255,.08);color:var(--text3)}
+.ac-body{padding:14px 16px}
+.ac-user{display:flex;align-items:center;gap:8px;margin-bottom:10px}
+.ac-avatar{width:30px;height:30px;border-radius:50%;background:var(--bg5);display:flex;align-items:center;justify-content:center;font-weight:800;font-size:12px}
+.ac-user-info span{display:block;font-weight:700;font-size:13px}
+.ac-user-info small{font-size:11px;color:var(--text3)}
+.ac-detail{font-size:12px;color:var(--text2);background:var(--bg4);border-radius:8px;padding:8px 10px;margin-bottom:10px;line-height:1.5}
+.ac-date{font-size:11px;color:var(--text3)}
+.ac-actions{display:flex;gap:6px;padding:12px 16px;border-top:1px solid var(--border)}
+.btn{padding:7px 12px;border-radius:7px;font-size:11px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;cursor:pointer;transition:.2s;border:none;flex:1}
+.btn-danger{background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.2);color:#ef4444}
+.btn-danger:hover{background:rgba(239,68,68,.2)}
+.btn-warning{background:rgba(245,158,11,.1);border:1px solid rgba(245,158,11,.2);color:var(--warning)}
+.btn-warning:hover{background:rgba(245,158,11,.2)}
+.btn-success{background:rgba(16,185,129,.1);border:1px solid rgba(16,185,129,.2);color:var(--success)}
+.btn-success:hover{background:rgba(16,185,129,.2)}
+.btn-ghost{background:var(--bg4);border:1px solid var(--border);color:var(--text3)}
+.btn-ghost:hover{color:var(--text)}
+#toast{position:fixed;bottom:24px;right:24px;z-index:9999;display:flex;flex-direction:column;gap:8px}
+.toast-msg{padding:12px 18px;background:var(--bg4);border-radius:10px;font-size:13px;font-weight:600;display:flex;align-items:center;gap:10px;box-shadow:var(--shadow);animation:slideIn .3s ease;border-left:3px solid var(--orange)}
+.toast-msg.success{border-color:var(--success)}
+.toast-msg.error{border-color:var(--danger)}
+@keyframes slideIn{from{opacity:0;transform:translateX(20px)}to{opacity:1;transform:none}}
+.empty-state{text-align:center;padding:60px;color:var(--text3);grid-column:1/-1}
+.empty-state i{font-size:40px;margin-bottom:14px;display:block}
+</style>
+</head>
+<body>
+<div class="admin-wrap">
+  <aside class="sidebar">
+    <div class="sb-logo">Sneak<span>X</span><small>Admin Panel</small></div>
+    <nav class="sb-nav">
+      <div class="sb-section">Principal</div>
+      <a class="sb-link" href="dashboard.html"><i class="fas fa-chart-pie"></i> Dashboard</a>
+      <a class="sb-link" href="commandes.html"><i class="fas fa-shopping-cart"></i> Commandes</a>
+      <a class="sb-link" href="produits.html"><i class="fas fa-box"></i> Produits</a>
+      <div class="sb-section">Gestion</div>
+      <a class="sb-link" href="utilisateurs.html"><i class="fas fa-users"></i> Utilisateurs</a>
+      <a class="sb-link" href="analytics.html"><i class="fas fa-chart-bar"></i> Analytics</a>
+      <a class="sb-link active" href="fraude.html"><i class="fas fa-shield-alt"></i> Anti-fraude</a>
+      <div class="sb-section">Site</div>
+      <a class="sb-link" href="../dashboard.html"><i class="fas fa-store"></i> Voir la boutique</a>
+    </nav>
+    <div class="sb-bottom">
+      <div class="sb-user">
+        <div class="sb-avatar" id="sb-avatar">A</div>
+        <div>
+          <div class="sb-user-name" id="sb-name">Admin</div>
+          <div class="sb-user-role">Administrateur</div>
+        </div>
+      </div>
+      <button class="btn-logout" onclick="doLogout()"><i class="fas fa-sign-out-alt"></i> Déconnexion</button>
+    </div>
+  </aside>
+
+  <main class="main">
+    <div class="page-header">
+      <div class="page-title">Anti-<span>Fraude</span></div>
+      <div class="page-sub">Détection et gestion des alertes de fraude</div>
+    </div>
+    <div class="stats-row">
+      <div class="stat-card"><div class="stat-val" style="color:var(--danger)" id="s-open">—</div><div class="stat-label">Ouvertes</div></div>
+      <div class="stat-card"><div class="stat-val" style="color:var(--warning)" id="s-reviewing">—</div><div class="stat-label">En révision</div></div>
+      <div class="stat-card"><div class="stat-val" style="color:var(--success)" id="s-resolved">—</div><div class="stat-label">Résolues</div></div>
+      <div class="stat-card"><div class="stat-val" style="color:var(--text3)" id="s-fp">—</div><div class="stat-label">Faux positifs</div></div>
+    </div>
+    <div class="filters">
+      <div class="search-box">
+        <i class="fas fa-search"></i>
+        <input type="text" id="search" placeholder="Rechercher par utilisateur, type..." oninput="filterAlerts()">
+      </div>
+      <select class="filter-select" id="filter-status" onchange="filterAlerts()">
+        <option value="">Tous les statuts</option>
+        <option value="OPEN">Ouvertes</option>
+        <option value="REVIEWING">En révision</option>
+        <option value="RESOLVED">Résolues</option>
+        <option value="FALSE_POSITIVE">Faux positifs</option>
+      </select>
+    </div>
+    <div class="alerts-grid" id="alerts-grid">
+      <div class="empty-state"><i class="fas fa-spinner fa-spin"></i>Chargement...</div>
+    </div>
+  </main>
+</div>
+
+<div id="toast"></div>
+
+<script type="module">
+import API from '../../assets/js/modules/api.js';
+import Auth from '../../assets/js/modules/auth.js';
+import { initTheme } from '../../assets/js/modules/sx-shared.js';
+
+initTheme();
+if (!Auth.isAuthenticated() || !Auth.hasRole('ADMIN')) {
+    window.location.href = 'login.html';
+}
+const user = Auth.getUser();
+if (user) {
+    document.getElementById('sb-avatar').textContent = (user.first_name||user.name||'A')[0].toUpperCase();
+    document.getElementById('sb-name').textContent = (user.first_name||'')+' '+(user.name||'');
+}
+
+const fmtDate = d => new Date(d).toLocaleDateString('fr-FR',{day:'2-digit',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'});
+let allAlerts = [];
+
+async function loadAlerts() {
+    try {
+        const res = await API.get('/api/admin/fraud-alerts');
+        if (!res.success) throw new Error(res.message);
+        allAlerts = res.data || [];
+        updateStats();
+        renderAlerts();
+    } catch(e) {
+        document.getElementById('alerts-grid').innerHTML=`<div class="empty-state"><i class="fas fa-exclamation-circle"></i>${e.message}</div>`;
+    }
+}
+
+function updateStats() {
+    document.getElementById('s-open').textContent = allAlerts.filter(a=>a.status==='OPEN').length;
+    document.getElementById('s-reviewing').textContent = allAlerts.filter(a=>a.status==='REVIEWING').length;
+    document.getElementById('s-resolved').textContent = allAlerts.filter(a=>a.status==='RESOLVED').length;
+    document.getElementById('s-fp').textContent = allAlerts.filter(a=>a.status==='FALSE_POSITIVE').length;
+}
+
+window.filterAlerts = function() { renderAlerts(); };
+
+function getFiltered() {
+    const s = document.getElementById('search').value.toLowerCase();
+    const status = document.getElementById('filter-status').value;
+    return allAlerts.filter(a =>
+        (!s || (a.alert_type||'').toLowerCase().includes(s) || (a.email||'').toLowerCase().includes(s) || (a.name||'').toLowerCase().includes(s)) &&
+        (!status || a.status===status)
+    );
+}
+
+const STATUS_MAP = {
+    OPEN:{label:'Ouverte',cls:'badge-open',cardCls:'open-card'},
+    REVIEWING:{label:'En révision',cls:'badge-reviewing',cardCls:'reviewing-card'},
+    RESOLVED:{label:'Résolue',cls:'badge-resolved',cardCls:'resolved-card'},
+    FALSE_POSITIVE:{label:'Faux positif',cls:'badge-false_positive',cardCls:'false-card'},
+};
+
+function renderAlerts() {
+    const filtered = getFiltered();
+    const grid = document.getElementById('alerts-grid');
+    if (!filtered.length) {
+        grid.innerHTML='<div class="empty-state"><i class="fas fa-shield-alt"></i>Aucune alerte trouvée</div>';
+        return;
+    }
+    grid.innerHTML = filtered.map(a => {
+        const sm = STATUS_MAP[a.status]||{label:a.status,cls:'badge-open',cardCls:'open-card'};
+        const isOpen = a.status==='OPEN'||a.status==='REVIEWING';
+        return `
+        <div class="alert-card ${sm.cardCls}">
+            <div class="ac-head">
+                <div class="ac-type"><i class="fas fa-exclamation-triangle" style="color:var(--danger);margin-right:6px"></i>${a.alert_type||'Alerte'}</div>
+                <span class="badge ${sm.cls}">${sm.label}</span>
+            </div>
+            <div class="ac-body">
+                <div class="ac-user">
+                    <div class="ac-avatar">${(a.name||'U')[0].toUpperCase()}</div>
+                    <div class="ac-user-info">
+                        <span>${a.name||'Utilisateur inconnu'}</span>
+                        <small>${a.email||'—'}</small>
+                    </div>
+                </div>
+                ${a.details?`<div class="ac-detail">${a.details}</div>`:''}
+                <div class="ac-date"><i class="fas fa-clock" style="margin-right:4px"></i>Détectée le ${fmtDate(a.detected_at||a.created_at||new Date())}</div>
+                ${a.resolved_at?`<div class="ac-date" style="margin-top:4px;color:var(--success)"><i class="fas fa-check" style="margin-right:4px"></i>Résolue le ${fmtDate(a.resolved_at)}</div>`:''}
+            </div>
+            <div class="ac-actions">
+                ${isOpen && a.status!=='REVIEWING' ? `<button class="btn btn-warning" onclick="updateStatus(${a.id},'REVIEWING')"><i class="fas fa-eye"></i> Réviser</button>` : ''}
+                ${isOpen ? `
+                    <button class="btn btn-success" onclick="updateStatus(${a.id},'RESOLVED')"><i class="fas fa-check"></i> Résoudre</button>
+                    <button class="btn btn-ghost" onclick="updateStatus(${a.id},'FALSE_POSITIVE')">Faux positif</button>
+                ` : `
+                    <button class="btn btn-ghost" onclick="updateStatus(${a.id},'OPEN')"><i class="fas fa-undo"></i> Rouvrir</button>
+                `}
+            </div>
+        </div>`;
+    }).join('');
+}
+
+window.updateStatus = async function(id, status) {
+    try {
+        const res = await API.put(`/api/admin/fraud-alerts/${id}`, {status});
+        if (!res.success) throw new Error(res.message);
+        const idx = allAlerts.findIndex(a=>a.id==id);
+        if (idx>=0) { allAlerts[idx].status=status; if(status==='RESOLVED'||status==='FALSE_POSITIVE') allAlerts[idx].resolved_at=new Date().toISOString(); }
+        updateStats();
+        renderAlerts();
+        const labels = {REVIEWING:'Mise en révision',RESOLVED:'Alerte résolue',FALSE_POSITIVE:'Marquée faux positif',OPEN:'Alerte rouverte'};
+        toast(labels[status]||'Statut mis à jour','success');
+    } catch(e) { toast('Erreur : '+e.message,'error'); }
+};
+
+function toast(msg,type='info') {
+    const el=document.createElement('div');
+    el.className=`toast-msg ${type}`;
+    const icon=type==='success'?'fa-check-circle':type==='error'?'fa-times-circle':'fa-info-circle';
+    el.innerHTML=`<i class="fas ${icon}"></i> ${msg}`;
+    document.getElementById('toast').appendChild(el);
+    setTimeout(()=>el.remove(),3500);
+}
+
+window.doLogout = function() {
+    if (confirm('Se déconnecter ?')) { localStorage.clear(); window.location.href='login.html'; }
+};
+
+loadAlerts();
+</script>
+</body>
+</html>

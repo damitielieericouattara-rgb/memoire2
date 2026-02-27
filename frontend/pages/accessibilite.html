@@ -1,0 +1,382 @@
+<!-- Fichier: /frontend/pages/accessibilite.html -->
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Accessibilité — SneakX</title>
+    <link rel="stylesheet" href="../assets/css/design-system.css">
+    <link rel="stylesheet" href="../assets/css/accessibility.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<style>
+        body { font-family: 'Barlow', sans-serif; }
+        .container { max-width: 1000px; margin: 0 auto; padding: 90px 60px 60px; }
+        h1, h2, h3 { font-family: 'Barlow Condensed', sans-serif; font-weight: 900; text-transform: uppercase; color: var(--text); }
+        h1 { font-size: 40px; letter-spacing: -1px; }
+        h1 span { color: var(--orange); }
+        .btn-primary { background: var(--orange); color: #fff; border: none; border-radius: 8px; font-weight: 700; font-size: 12px; letter-spacing: 1px; text-transform: uppercase; padding: 10px 20px; cursor: pointer; transition: all .2s; }
+        .btn-primary:hover { background: var(--orange-light); }
+        .btn-secondary { background: transparent; color: var(--text2); border: 1px solid var(--border2); border-radius: 8px; font-weight: 700; font-size: 12px; text-transform: uppercase; padding: 10px 20px; cursor: pointer; transition: all .2s; }
+        .text-primary { color: var(--orange) !important; }
+        .text-secondary { color: var(--text2) !important; }
+        .card { background: var(--bg3); border: 1px solid var(--border); border-radius: 14px; padding: 24px; margin-bottom: 20px; }
+        @media(max-width:768px){.container{padding:80px 16px 40px}}
+    </style>
+</head>
+<body>
+    <div id="sx-header-placeholder"></div>
+    
+
+    <main class="container" style="padding-top:2rem;padding-bottom:3rem;max-width:960px;">
+        <div class="text-center mb-xl">
+            <div style="width:80px;height:80px;border-radius:50%;background:linear-gradient(135deg,#667eea,#764ba2);color:white;font-size:2rem;display:flex;align-items:center;justify-content:center;margin:0 auto 1rem;">
+                <i class="fas fa-universal-access"></i>
+            </div>
+            <h1>Paramètres d'accessibilité</h1>
+            <p class="text-secondary mt-sm">Personnalisez votre expérience de navigation</p>
+        </div>
+
+        <!-- Mode d'affichage -->
+        <section class="card mb-xl">
+            <h2 class="mb-lg"><i class="fas fa-palette text-primary"></i> Mode d'affichage</h2>
+            <div class="grid grid-cols-2 gap-md" id="modesGrid">
+                <!-- Rempli dynamiquement -->
+            </div>
+        </section>
+
+        <!-- Police et contraste -->
+        <section class="card mb-xl">
+            <h2 class="mb-lg"><i class="fas fa-text-height text-primary"></i> Taille du texte</h2>
+            <div class="flex gap-md" style="align-items:center;">
+                <span class="text-secondary">A</span>
+                <input type="range" id="fontSizeRange" min="14" max="28" value="16" step="2"
+                       style="flex:1;" oninput="previewFontSize(this.value)">
+                <span style="font-size:1.5rem;">A</span>
+                <span class="badge" style="background:var(--primary-color);color:white;padding:.3rem .75rem;" id="fontSizeLabel">16px</span>
+            </div>
+            <div id="fontPreview" style="margin-top:1rem;padding:1rem;background:var(--bg-secondary);border-radius:.5rem;">
+                <p>Exemple de texte avec la taille sélectionnée. Ceci est un aperçu de l'affichage.</p>
+            </div>
+        </section>
+
+        <!-- Vitesse synthèse vocale -->
+        <section class="card mb-xl">
+            <h2 class="mb-lg"><i class="fas fa-volume-up text-primary"></i> Synthèse vocale</h2>
+            <div class="form-group">
+                <label class="form-label">Vitesse de lecture</label>
+                <div class="flex gap-md" style="align-items:center;">
+                    <span class="text-secondary"><i class="fas fa-turtle"></i></span>
+                    <input type="range" id="speechRate" min="0.5" max="2.0" value="1.0" step="0.1"
+                           style="flex:1;" oninput="document.getElementById('speechRateLabel').textContent=parseFloat(this.value).toFixed(1)+'x'">
+                    <span class="text-secondary"><i class="fas fa-rabbit"></i></span>
+                    <span class="badge" style="background:var(--primary-color);color:white;padding:.3rem .75rem;" id="speechRateLabel">1.0x</span>
+                </div>
+            </div>
+            <button class="btn btn-secondary mt-md" onclick="testVoice()">
+                <i class="fas fa-play"></i> Tester la voix
+            </button>
+        </section>
+
+        <!-- Options additionnelles -->
+        <section class="card mb-xl">
+            <h2 class="mb-lg"><i class="fas fa-sliders-h text-primary"></i> Options additionnelles</h2>
+            <div style="display:flex;flex-direction:column;gap:1rem;">
+                <label class="form-checkbox">
+                    <input type="checkbox" id="optContrast">
+                    <span>
+                        <strong>Contraste élevé</strong>
+                        <small class="text-secondary d-block">Améliore la lisibilité sur fond sombre</small>
+                    </span>
+                </label>
+                <label class="form-checkbox">
+                    <input type="checkbox" id="optSubtitles">
+                    <span>
+                        <strong>Sous-titres automatiques</strong>
+                        <small class="text-secondary d-block">Affiche les sous-titres sur les vidéos</small>
+                    </span>
+                </label>
+                <label class="form-checkbox">
+                    <input type="checkbox" id="optSignLanguage">
+                    <span>
+                        <strong>Langue des signes (LSF)</strong>
+                        <small class="text-secondary d-block">Affiche un interprète LSF pour les messages importants</small>
+                    </span>
+                </label>
+                <label class="form-checkbox">
+                    <input type="checkbox" id="optEco">
+                    <span>
+                        <strong>Mode économie internet</strong>
+                        <small class="text-secondary d-block">Réduit la consommation de données (images légères, sans animations)</small>
+                    </span>
+                </label>
+                <label class="form-checkbox">
+                    <input type="checkbox" id="optReduceMotion">
+                    <span>
+                        <strong>Réduire les animations</strong>
+                        <small class="text-secondary d-block">Désactive les effets de transition et animations</small>
+                    </span>
+                </label>
+            </div>
+        </section>
+
+        <!-- Raccourcis clavier -->
+        <section class="card mb-xl">
+            <h2 class="mb-lg"><i class="fas fa-keyboard text-primary"></i> Raccourcis clavier</h2>
+            <div class="grid grid-cols-2 gap-md">
+                <div class="shortcut-row">
+                    <kbd>Alt</kbd> + <kbd>A</kbd>
+                    <span>Ouvrir l'accessibilité</span>
+                </div>
+                <div class="shortcut-row">
+                    <kbd>Alt</kbd> + <kbd>V</kbd>
+                    <span>Activer/Désactiver voix</span>
+                </div>
+                <div class="shortcut-row">
+                    <kbd>Alt</kbd> + <kbd>S</kbd>
+                    <span>Aller à la recherche</span>
+                </div>
+                <div class="shortcut-row">
+                    <kbd>Tab</kbd>
+                    <span>Naviguer entre les éléments</span>
+                </div>
+                <div class="shortcut-row">
+                    <kbd>Espace</kbd> / <kbd>Entrée</kbd>
+                    <span>Activer l'élément sélectionné</span>
+                </div>
+                <div class="shortcut-row">
+                    <kbd>Esc</kbd>
+                    <span>Fermer les fenêtres</span>
+                </div>
+            </div>
+        </section>
+
+        <!-- Conformité WCAG -->
+        <section class="card mb-xl" style="border-left:4px solid var(--success-color);">
+            <h2 class="mb-md"><i class="fas fa-certificate text-primary"></i> Conformité WCAG 2.1</h2>
+            <p class="text-secondary mb-md">Cette plateforme respecte les directives d'accessibilité du W3C au niveau AA :</p>
+            <div class="grid grid-cols-2 gap-md">
+                <div class="flex gap-sm" style="align-items:flex-start;">
+                    <i class="fas fa-check-circle" style="color:var(--success-color);margin-top:.2rem;"></i>
+                    <div>
+                        <strong>Perceptible</strong>
+                        <p class="text-secondary text-sm">Contenu disponible pour tous les sens</p>
+                    </div>
+                </div>
+                <div class="flex gap-sm" style="align-items:flex-start;">
+                    <i class="fas fa-check-circle" style="color:var(--success-color);margin-top:.2rem;"></i>
+                    <div>
+                        <strong>Utilisable</strong>
+                        <p class="text-secondary text-sm">Navigation clavier complète</p>
+                    </div>
+                </div>
+                <div class="flex gap-sm" style="align-items:flex-start;">
+                    <i class="fas fa-check-circle" style="color:var(--success-color);margin-top:.2rem;"></i>
+                    <div>
+                        <strong>Compréhensible</strong>
+                        <p class="text-secondary text-sm">Interface claire et prévisible</p>
+                    </div>
+                </div>
+                <div class="flex gap-sm" style="align-items:flex-start;">
+                    <i class="fas fa-check-circle" style="color:var(--success-color);margin-top:.2rem;"></i>
+                    <div>
+                        <strong>Robuste</strong>
+                        <p class="text-secondary text-sm">Compatible avec technologies d'assistance</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Actions -->
+        <div id="saveAlert"></div>
+        <div class="flex gap-md" style="justify-content:flex-end;">
+            <button class="btn btn-secondary" onclick="resetSettings()">
+                <i class="fas fa-undo"></i> Réinitialiser
+            </button>
+            <button class="btn btn-primary" onclick="saveSettings()">
+                <i class="fas fa-save"></i> Enregistrer les préférences
+            </button>
+        </div>
+    </main>
+
+    <!-- LSF overlay (si activé) -->
+    <div id="lsfOverlay" style="display:none;position:fixed;bottom:1rem;right:1rem;z-index:9999;background:white;border:2px solid var(--primary-color);border-radius:.75rem;padding:1rem;width:200px;text-align:center;box-shadow:var(--shadow-lg);">
+        <div style="font-size:3rem;">🤟</div>
+        <p class="text-sm mt-sm text-secondary">Avatar LSF actif</p>
+        <button class="btn btn-secondary btn-sm mt-sm" onclick="document.getElementById('lsfOverlay').style.display='none'">Réduire</button>
+    </div>
+
+    <style>
+        .mode-card { border:2px solid var(--border-color); border-radius:.75rem; padding:1.5rem; cursor:pointer; transition:all .2s; text-align:center; }
+        .mode-card:hover { border-color:var(--primary-color); transform:translateY(-2px); }
+        .mode-card.selected { border-color:var(--primary-color); background:#eff6ff; }
+        .mode-card i { font-size:2.5rem; color:var(--primary-color); display:block; margin-bottom:.75rem; }
+        .mode-card h3 { font-size:1rem; margin-bottom:.4rem; }
+        .mode-card p { font-size:.82rem; color:var(--text-secondary); line-height:1.4; }
+
+        .shortcut-row { display:flex; align-items:center; gap:.75rem; padding:.5rem; background:var(--bg-secondary); border-radius:.375rem; font-size:.9rem; }
+        kbd { background:#1f2937; color:white; padding:.2rem .5rem; border-radius:.25rem; font-size:.8rem; font-family:monospace; }
+
+        .d-block { display:block; }
+        .flex { display:flex; }
+        .gap-sm { gap:.5rem; }
+        .gap-md { gap:1rem; }
+
+        @keyframes fadeIn { from { opacity:0; transform:translateY(10px); } to { opacity:1; transform:none; } }
+        .card { animation:fadeIn .4s ease; }
+    </style>
+
+    <script type="module">
+        import { init, showToast } from '../assets/js/modules/sx-shared.js';
+        init();
+        import Accessibility from '../assets/js/modules/accessibility.js';
+
+        const MODES = [
+            { id:'STANDARD',      label:'Mode Standard',       icon:'fas fa-desktop',      desc:'Interface complète classique' },
+            { id:'LOW_VISION',    label:'Mode Malvoyant',      icon:'fas fa-low-vision',   desc:'Contraste élevé, police agrandie, ARIA complet' },
+            { id:'VOCAL',         label:'Mode Vocal',          icon:'fas fa-microphone',   desc:'Navigation 100% par la voix' },
+            { id:'SIGN_LANGUAGE', label:'Langue des Signes',   icon:'fas fa-hands',        desc:'Avatar LSF, vidéos explicatives' },
+        ];
+
+        let selectedMode = Accessibility.getMode() || 'STANDARD';
+
+        window.addEventListener('DOMContentLoaded', () => {
+            Accessibility.init();
+            renderModes();
+            loadSettings();
+
+            // Keyboard shortcut
+            document.addEventListener('keydown', e => {
+                if (e.altKey && e.key.toLowerCase() === 'v') toggleVoice();
+            });
+        });
+
+        function renderModes() {
+            document.getElementById('modesGrid').innerHTML = MODES.map(m => `
+                <div class="mode-card ${m.id === selectedMode ? 'selected' : ''}" onclick="selectMode('${m.id}')">
+                    <i class="${m.icon}"></i>
+                    <h3>${m.label}</h3>
+                    <p>${m.desc}</p>
+                </div>`).join('');
+        }
+
+        function loadSettings() {
+            const prefs = JSON.parse(localStorage.getItem('accessibility_prefs') || '{}');
+            document.getElementById('fontSizeRange').value = prefs.fontSize || 16;
+            document.getElementById('fontSizeLabel').textContent = (prefs.fontSize || 16) + 'px';
+            document.getElementById('fontPreview').style.fontSize = (prefs.fontSize || 16) + 'px';
+            document.getElementById('speechRate').value = prefs.speechRate || 1.0;
+            document.getElementById('speechRateLabel').textContent = (prefs.speechRate || 1.0).toFixed(1) + 'x';
+            document.getElementById('optContrast').checked = prefs.highContrast || false;
+            document.getElementById('optSubtitles').checked = prefs.subtitles || false;
+            document.getElementById('optSignLanguage').checked = prefs.signLanguage || false;
+            document.getElementById('optEco').checked = localStorage.getItem('eco_mode') === 'true';
+            document.getElementById('optReduceMotion').checked = prefs.reduceMotion || false;
+        }
+
+        window.selectMode = function(mode) {
+            selectedMode = mode;
+            Accessibility.setMode(mode);
+            renderModes();
+
+            // LSF overlay
+            if (mode === 'SIGN_LANGUAGE') {
+                document.getElementById('lsfOverlay').style.display = 'block';
+            } else {
+                document.getElementById('lsfOverlay').style.display = 'none';
+            }
+        };
+
+        window.previewFontSize = function(size) {
+            document.getElementById('fontSizeLabel').textContent = size + 'px';
+            document.getElementById('fontPreview').style.fontSize = size + 'px';
+        };
+
+        window.testVoice = function() {
+            if (!('speechSynthesis' in window)) {
+                toast('Synthèse vocale non supportée par votre navigateur', 'error');
+                return;
+            }
+            const rate = parseFloat(document.getElementById('speechRate').value);
+            const utterance = new SpeechSynthesisUtterance('Bonjour ! Voici la vitesse de lecture sélectionnée. Cette plateforme est accessible à tous.');
+            utterance.lang = 'fr-FR';
+            utterance.rate = rate;
+            speechSynthesis.cancel();
+            speechSynthesis.speak(utterance);
+        };
+
+        function toggleVoice() {
+            const btn = document.querySelector('.voice-button');
+            if (btn) btn.click();
+        }
+
+        window.saveSettings = function() {
+            const prefs = {
+                mode: selectedMode,
+                fontSize: parseInt(document.getElementById('fontSizeRange').value),
+                speechRate: parseFloat(document.getElementById('speechRate').value),
+                highContrast: document.getElementById('optContrast').checked,
+                subtitles: document.getElementById('optSubtitles').checked,
+                signLanguage: document.getElementById('optSignLanguage').checked,
+                reduceMotion: document.getElementById('optReduceMotion').checked
+            };
+
+            localStorage.setItem('accessibility_prefs', JSON.stringify(prefs));
+            localStorage.setItem('accessibility_mode', selectedMode);
+
+            if (document.getElementById('optEco').checked) {
+                localStorage.setItem('eco_mode', 'true');
+                document.body.setAttribute('data-mode', 'ECO');
+            } else {
+                localStorage.removeItem('eco_mode');
+                document.body.removeAttribute('data-mode');
+            }
+
+            if (prefs.reduceMotion) {
+                document.body.style.setProperty('--transition-base', '0ms');
+                document.body.style.setProperty('--transition-fast', '0ms');
+            }
+
+            if (prefs.signLanguage) {
+                document.getElementById('lsfOverlay').style.display = 'block';
+            }
+
+            const alert = document.getElementById('saveAlert');
+            alert.innerHTML = '<div class="alert alert-success"><i class="fas fa-check-circle"></i> Préférences enregistrées avec succès !</div>';
+            setTimeout(() => alert.innerHTML = '', 3000);
+
+            toast('Préférences sauvegardées', 'success');
+        };
+
+        window.resetSettings = function() {
+            if (!confirm('Réinitialiser toutes les préférences d\'accessibilité ?')) return;
+            localStorage.removeItem('accessibility_prefs');
+            localStorage.removeItem('accessibility_mode');
+            localStorage.removeItem('eco_mode');
+            selectedMode = 'STANDARD';
+            Accessibility.setMode('STANDARD');
+            document.getElementById('fontSizeRange').value = 16;
+            document.getElementById('fontSizeLabel').textContent = '16px';
+            document.getElementById('fontPreview').style.fontSize = '16px';
+            document.getElementById('speechRate').value = 1.0;
+            document.getElementById('speechRateLabel').textContent = '1.0x';
+            document.getElementById('optContrast').checked = false;
+            document.getElementById('optSubtitles').checked = false;
+            document.getElementById('optSignLanguage').checked = false;
+            document.getElementById('optEco').checked = false;
+            document.getElementById('optReduceMotion').checked = false;
+            document.getElementById('lsfOverlay').style.display = 'none';
+            renderModes();
+            toast('Paramètres réinitialisés', 'success');
+        };
+
+        function toast(msg, type) {
+            const t = document.createElement('div');
+            t.className = `alert alert-${type === 'success' ? 'success' : 'error'}`;
+            t.style.cssText = 'position:fixed;bottom:1rem;right:1rem;z-index:9999;padding:1rem 1.5rem;border-radius:.5rem;';
+            t.textContent = msg;
+            document.body.appendChild(t);
+            setTimeout(() => t.remove(), 3500);
+        }
+    </script>
+</body>
+</html>

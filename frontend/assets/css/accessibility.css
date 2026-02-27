@@ -1,0 +1,154 @@
+/* Fichier: /frontend/assets/css/accessibility.css */
+
+/* ============================================================
+   MODE MALVOYANT (HIGH CONTRAST)
+   ============================================================ */
+body[data-accessibility="LOW_VISION"] {
+    --bg-color: #000000;
+    --bg-secondary: #1a1a1a;
+    --text-color: #ffff00;
+    --text-secondary: #ffff99;
+    --border-color: #ffff00;
+    --primary-color: #ffff00;
+    --primary-dark: #cccc00;
+}
+
+body[data-accessibility="LOW_VISION"] * {
+    font-size: 18px !important;
+    line-height: 1.8 !important;
+}
+
+body[data-accessibility="LOW_VISION"] h1 { font-size: 32px !important; }
+body[data-accessibility="LOW_VISION"] h2 { font-size: 28px !important; }
+body[data-accessibility="LOW_VISION"] h3 { font-size: 24px !important; }
+
+body[data-accessibility="LOW_VISION"] .btn,
+body[data-accessibility="LOW_VISION"] .form-input,
+body[data-accessibility="LOW_VISION"] .form-select {
+    min-height: 44px;
+    padding: 12px 20px;
+}
+
+body[data-accessibility="LOW_VISION"] a {
+    text-decoration: underline;
+    font-weight: bold;
+}
+
+body[data-accessibility="LOW_VISION"] .card,
+body[data-accessibility="LOW_VISION"] .product-card {
+    border: 3px solid var(--border-color);
+}
+
+body[data-accessibility="LOW_VISION"] img {
+    border: 2px solid var(--border-color);
+}
+
+/* ============================================================
+   MODE VOCAL
+   ============================================================ */
+body[data-accessibility="VOCAL"] .voice-indicator {
+    display: block !important;
+}
+
+.voice-indicator {
+    display: none;
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    background-color: var(--primary-color);
+    color: white;
+    padding: 15px 20px;
+    border-radius: 50px;
+    box-shadow: var(--shadow-lg);
+    z-index: 10000;
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+}
+
+.voice-button {
+    position: fixed;
+    bottom: 80px;
+    right: 20px;
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    background-color: var(--danger-color);
+    color: white;
+    font-size: 24px;
+    box-shadow: var(--shadow-lg);
+    z-index: 10000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.voice-button.listening {
+    animation: pulse-red 1s infinite;
+    background-color: #dc2626;
+}
+
+@keyframes pulse-red {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(220, 38, 38, 0.7); }
+    50% { box-shadow: 0 0 0 20px rgba(220, 38, 38, 0); }
+}
+
+/* ============================================================
+   FOCUS VISIBLE (NAVIGATION CLAVIER)
+   ============================================================ */
+*:focus-visible {
+    outline: 3px solid var(--primary-color);
+    outline-offset: 2px;
+}
+
+/* ============================================================
+   SKIP LINKS (ACCESSIBILITÉ)
+   ============================================================ */
+.skip-link {
+    position: absolute;
+    top: -40px;
+    left: 0;
+    background: var(--primary-color);
+    color: white;
+    padding: 8px;
+    text-decoration: none;
+    z-index: 100000;
+}
+
+.skip-link:focus {
+    top: 0;
+}
+
+/* ============================================================
+   ARIA LIVE REGIONS
+   ============================================================ */
+.sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border-width: 0;
+}
+
+/* ============================================================
+   MODE ÉCONOMIE INTERNET
+   ============================================================ */
+body[data-mode="ECO"] * {
+    animation: none !important;
+    transition: none !important;
+}
+
+body[data-mode="ECO"] img {
+    filter: grayscale(50%);
+}
+
+body[data-mode="ECO"] video {
+    display: none;
+}

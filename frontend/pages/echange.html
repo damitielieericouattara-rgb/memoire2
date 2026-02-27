@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="fr" data-theme="dark">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SneakX — Marketplace d'échange</title>
+<link rel="stylesheet" href="../assets/css/design-system.css">
+<link rel="stylesheet" href="../assets/css/accessibility.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<style>
+.exchange-card{background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius-lg);overflow:hidden;transition:all .25s;cursor:pointer}
+.exchange-card:hover{transform:translateY(-4px);box-shadow:var(--shadow);border-color:var(--orange-border)}
+.cond-badge{font-size:10px;padding:3px 8px;border-radius:10px;font-weight:700}
+.cond-LIKE_NEW{background:rgba(16,185,129,.15);color:var(--success)}
+.cond-GOOD{background:rgba(59,130,246,.15);color:var(--info)}
+.cond-FAIR{background:rgba(245,158,11,.15);color:var(--warning)}
+</style>
+</head>
+<body>
+<header class="sx-header" id="sx-header"></header>
+<main class="page-main"><div class="container">
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:32px 0 24px;flex-wrap:wrap;gap:16px">
+        <div>
+            <h1 class="section-title">Marketplace <span>d'Échange</span></h1>
+            <div class="section-subtitle">Achetez et revendez des sneakers entre membres SneakX</div>
+        </div>
+        <button class="btn btn-primary" id="sell-btn"><i class="fas fa-plus"></i> Vendre/Échanger</button>
+    </div>
+
+    <!-- Filtres type -->
+    <div style="display:flex;gap:8px;margin-bottom:24px;flex-wrap:wrap">
+        <div class="filter-tag active" data-type="">Tout</div>
+        <div class="filter-tag" data-type="SALE">Vente</div>
+        <div class="filter-tag" data-type="EXCHANGE">Échange</div>
+        <div class="filter-tag" data-type="BOTH">Vente & Échange</div>
+    </div>
+
+    <div id="exchange-grid" class="grid-4">
+        ${Array(8).fill('<div class="skeleton" style="height:280px;border-radius:var(--radius-lg)"></div>').join('')}
+    </div>
+</div></main>
+
+<!-- Modal créer annonce -->
+<div class="modal-overlay" id="sell-modal">
+    <div class="modal">
+        <div class="modal-header">
+            <div class="modal-title">🏷️ Créer une annonce</div>
+            <button class="modal-close" onclick="document.getElementById('sell-modal').classList.remove('active')">✕</button>
+        </div>
+        <div class="form-group">
+            <label class="form-label">Titre *</label>
+            <input type="text" id="sell-title" class="form-control" placeholder="Ex: Air Max 90 — Taille 42">
+        </div>
+        <div class="form-group">
+            <label class="form-label">Prix (FCFA) *</label>
+            <input type="number" id="sell-price" class="form-control" placeholder="Ex: 35000">
+        </div>
+        <div class="form-group">
+            <label class="form-label">État *</label>
+            <select id="sell-condition" class="form-control">
+                <option value="LIKE_NEW">Comme neuf</option>
+                <option value="GOOD">Bon état</option>
+                <option value="FAIR">État correct</option>
+                <option value="FOR_PARTS">Pour pièces</option>
+            </select>
+        </div>
+        <div class="form-group">
+            <label class="form-label">Type *</label>
+            <select id="sell-type" class="form-control">
+                <option value="SALE">Vente uniquement</option>
+                <option value="EXCHANGE">Échange uniquement</option>
+                <option value="BOTH">Vente ou Échange</option>
+            </select>
+        </div>
+        <div class="form-group">
+            <label class="form-label">Description</label>
+            <textarea id="sell-desc" class="form-control" rows="3" placeholder="Décrivez votre article..."></textarea>
+        </div>
+        <button class="btn btn-primary" style="width:100%" onclick="createListing()">Publier l'annonce</button>
+    </div>
+</div>
+
+<script src="../assets/js/modules/api.js"></script>
+<script src="../assets/js/modules/notifications.js"></script>
+<script src="../assets/js/modules/voice.js"></script>
+<script src="../assets/js/modules/accessibility.js"></script>
+<script src="../assets/js/app.js"></script>
+<script>
+let currentType = '';
+
+async function loadListings() {
+    const data = await API.getExchangeItems(currentType ? { type: currentType } : {});
+    if (!data?.success) return;
+    const grid = document.getElementById('exchange-grid');
+    const items = data.data || [];
+
+    if (!items.length) {
+        grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:60px;color:var(--text2)"><div style="font-size:48px;margin-bottom:16px">🔄</div>Aucune annonce pour l\'instant</div>';
+        return;
+    }
+
+    grid.innerHTML = '';
+    items.forEach(item => {
+        const imgs = item.images ? JSON.parse(item.images) : [];
+        const card = document.createElement('div');
+        card.className = 'exchange-card';
+        card.innerHTML = `
+        <div style="height:180px;background:var(--bg4);display:flex;align-items:center;justify-content:center;font-size:52px">
+            ${imgs.length ? `<img src="${imgs[0]}" style="width:100%;height:100%;object-fit:cover">` : '👟'}
+        </div>
+        <div style="padding:14px">
+            <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px">
+                <div style="font-weight:700;font-size:14px">${item.title}</div>
+                <div class="cond-badge cond-${item.condition}">${{LIKE_NEW:'Neuf',GOOD:'Bon',FAIR:'Correct',FOR_PARTS:'Pièces'}[item.condition]||item.condition}</div>
+            </div>
+            <div style="color:var(--orange);font-weight:800;font-size:18px;margin-bottom:6px">${parseFloat(item.price).toLocaleString('fr-FR')} FCFA</div>
+            <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--text3)">
+                <span>Par ${item.seller_name||'Vendeur'}</span>
+                <span>${{SALE:'💰 Vente',EXCHANGE:'🔄 Échange',BOTH:'💰🔄 Les deux'}[item.type]||item.type}</span>
+            </div>
+        </div>`;
+        card.addEventListener('click', () => showItemDetail(item));
+        grid.appendChild(card);
+    });
+}
+
+function showItemDetail(item) {
+    showToast('📋', `${item.title} — ${parseFloat(item.price).toLocaleString('fr-FR')} FCFA`, 'info');
+}
+
+async function createListing() {
+    if (!localStorage.getItem('token')) { window.location.href = 'connexion.html'; return; }
+    const data = await API.createExchangeItem({
+        title: document.getElementById('sell-title').value,
+        price: document.getElementById('sell-price').value,
+        condition: document.getElementById('sell-condition').value,
+        type: document.getElementById('sell-type').value,
+        description: document.getElementById('sell-desc').value,
+    });
+    if (data?.success) {
+        document.getElementById('sell-modal').classList.remove('active');
+        showToast('✅', 'Annonce publiée !', 'success');
+        loadListings();
+    } else {
+        showToast('Erreur', data?.message, 'danger');
+    }
+}
+
+// Filtres type
+document.querySelectorAll('[data-type]').forEach(el => {
+    el.addEventListener('click', () => {
+        document.querySelectorAll('[data-type]').forEach(e => e.classList.remove('active'));
+        el.classList.add('active');
+        currentType = el.dataset.type;
+        loadListings();
+    });
+});
+
+document.getElementById('sell-btn')?.addEventListener('click', () => {
+    if (!localStorage.getItem('token')) { window.location.href = 'connexion.html'; return; }
+    document.getElementById('sell-modal').classList.add('active');
+});
+
+loadListings();
+</script>
+</body>
+</html>

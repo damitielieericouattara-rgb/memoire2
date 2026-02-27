@@ -1,0 +1,595 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Admin — Tableau de Bord</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <link rel="stylesheet" href="../assets/css/style.css" />
+  <script>tailwind.config = { darkMode: 'class' }</script>
+</head>
+<body class="bg-slate-100 dark:bg-slate-900 min-h-screen flex">
+
+<!-- ─── Sidebar ────────────────────────────────────────────────────────────── -->
+<aside id="sidebar" class="w-64 min-h-screen card rounded-none border-r border-slate-200 dark:border-slate-700 flex flex-col shadow-none hidden md:flex">
+  <div class="p-5 border-b border-slate-200 dark:border-slate-700">
+    <div class="flex items-center gap-3">
+      <span class="text-3xl">🛍️</span>
+      <div>
+        <p class="font-bold text-slate-800 dark:text-white text-sm">E-Commerce</p>
+        <p class="text-xs text-slate-400">Administration</p>
+      </div>
+    </div>
+  </div>
+
+  <nav class="flex-1 p-4 space-y-1">
+    <a href="#section-dashboard" class="nav-item flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-medium hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 active-nav bg-blue-50 dark:bg-blue-900/30 !text-primary">
+      📊 Dashboard
+    </a>
+    <a href="#section-orders" class="nav-item flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-medium hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300">
+      📦 Commandes
+    </a>
+    <a href="#section-products" class="nav-item flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-medium hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300">
+      🏪 Produits
+    </a>
+    <a href="#section-users" class="nav-item flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-medium hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300">
+      👥 Utilisateurs
+    </a>
+    <a href="#section-analytics" class="nav-item flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-medium hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300">
+      📈 Analytiques
+    </a>
+    <a href="#section-fraud" class="nav-item flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-medium hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300">
+      🛡 Fraude & Sécurité
+    </a>
+  </nav>
+
+  <div class="p-4 border-t border-slate-200 dark:border-slate-700">
+    <div class="flex items-center gap-3 mb-3">
+      <span class="text-2xl">👤</span>
+      <div class="flex-1 min-w-0">
+        <p class="text-sm font-semibold truncate" id="admin-name">Admin</p>
+        <p class="text-xs text-slate-400">Administrateur</p>
+      </div>
+    </div>
+    <button id="btn-logout" class="btn btn-ghost w-full text-sm text-red-500 gap-2">
+      🚪 Déconnexion
+    </button>
+  </div>
+</aside>
+
+<!-- ─── Contenu principal ─────────────────────────────────────────────────── -->
+<div class="flex-1 flex flex-col min-h-screen overflow-hidden">
+
+  <!-- Top bar -->
+  <header class="bg-white dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700 px-6 py-4 flex items-center justify-between shadow-sm">
+    <div>
+      <h1 class="font-bold text-slate-800 dark:text-white" id="page-title">📊 Tableau de Bord</h1>
+      <p class="text-xs text-slate-400" id="page-date"></p>
+    </div>
+    <div class="flex items-center gap-3">
+      <!-- Bouton assistant vocal -->
+      <button id="btn-voice-admin" class="btn btn-primary gap-2 text-sm">
+        🎙️ Assistant Vocal
+      </button>
+      <button id="btn-refresh" class="btn btn-ghost text-xl" title="Actualiser">🔄</button>
+      <button id="btn-theme" class="btn btn-ghost text-xl">🌙</button>
+    </div>
+  </header>
+
+  <!-- Assistant vocal panel -->
+  <div id="voice-panel" class="hidden bg-gradient-to-r from-blue-600 to-violet-600 text-white px-6 py-4">
+    <div class="max-w-2xl mx-auto flex items-center gap-4">
+      <div id="voice-wave" class="flex gap-1 items-center">
+        <div class="w-1.5 h-6 bg-white/60 rounded-full animate-bounce" style="animation-delay:0s"></div>
+        <div class="w-1.5 h-8 bg-white rounded-full animate-bounce" style="animation-delay:0.1s"></div>
+        <div class="w-1.5 h-5 bg-white/60 rounded-full animate-bounce" style="animation-delay:0.2s"></div>
+        <div class="w-1.5 h-9 bg-white rounded-full animate-bounce" style="animation-delay:0.3s"></div>
+        <div class="w-1.5 h-4 bg-white/60 rounded-full animate-bounce" style="animation-delay:0.4s"></div>
+      </div>
+      <div class="flex-1">
+        <p class="text-sm font-semibold">Assistant vocal actif</p>
+        <p id="voice-transcript" class="text-blue-100 text-sm">Posez une question : "Quel est le chiffre d'affaires du jour ?"</p>
+      </div>
+      <button id="btn-stop-voice" class="btn bg-white/20 hover:bg-white/30 text-white text-sm">⏹ Arrêter</button>
+    </div>
+  </div>
+
+  <!-- Sections scrollables -->
+  <main class="flex-1 overflow-y-auto p-6 space-y-8">
+
+    <!-- ─── Dashboard KPI ──────────────────────────────────────────────── -->
+    <section id="section-dashboard">
+      <h2 class="text-lg font-bold text-slate-700 dark:text-slate-200 mb-4">Vue d'ensemble</h2>
+      <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6" id="kpi-grid">
+        <div class="card p-5 space-y-2">
+          <p class="text-xs text-slate-400 font-medium uppercase tracking-wide">CA Aujourd'hui</p>
+          <p class="text-2xl font-bold text-primary" id="kpi-ca">—</p>
+          <p class="text-xs text-green-500">🏪 Ventes du jour</p>
+        </div>
+        <div class="card p-5 space-y-2">
+          <p class="text-xs text-slate-400 font-medium uppercase tracking-wide">Commandes</p>
+          <p class="text-2xl font-bold text-violet-600" id="kpi-orders">—</p>
+          <p class="text-xs text-slate-400">📦 Aujourd'hui</p>
+        </div>
+        <div class="card p-5 space-y-2">
+          <p class="text-xs text-slate-400 font-medium uppercase tracking-wide">Alertes Fraude</p>
+          <p class="text-2xl font-bold text-red-500" id="kpi-fraud">—</p>
+          <p class="text-xs text-red-400">🛡 Ouvertes</p>
+        </div>
+        <div class="card p-5 space-y-2">
+          <p class="text-xs text-slate-400 font-medium uppercase tracking-wide">Stocks Critiques</p>
+          <p class="text-2xl font-bold text-orange-500" id="kpi-stock">—</p>
+          <p class="text-xs text-orange-400">⚠ Produits en alerte</p>
+        </div>
+      </div>
+
+      <!-- Graphiques -->
+      <div class="grid lg:grid-cols-2 gap-6">
+        <div class="card p-5">
+          <h3 class="font-semibold text-sm text-slate-600 dark:text-slate-300 mb-4">📈 Ventes — 7 derniers jours</h3>
+          <canvas id="chart-sales" height="200"></canvas>
+        </div>
+        <div class="card p-5">
+          <h3 class="font-semibold text-sm text-slate-600 dark:text-slate-300 mb-4">📊 Statuts des commandes</h3>
+          <canvas id="chart-orders" height="200"></canvas>
+        </div>
+      </div>
+    </section>
+
+    <!-- ─── Commandes récentes ─────────────────────────────────────────── -->
+    <section id="section-orders">
+      <div class="flex items-center justify-between mb-4">
+        <h2 class="text-lg font-bold text-slate-700 dark:text-slate-200">📦 Commandes récentes</h2>
+        <button id="btn-refresh-orders" class="btn btn-ghost text-sm gap-1">🔄 Actualiser</button>
+      </div>
+      <div class="card overflow-hidden">
+        <div class="overflow-x-auto">
+          <table class="w-full text-sm">
+            <thead class="bg-slate-50 dark:bg-slate-700/50 text-slate-500 dark:text-slate-400">
+              <tr>
+                <th class="px-4 py-3 text-left font-semibold">N° Commande</th>
+                <th class="px-4 py-3 text-left font-semibold">Client</th>
+                <th class="px-4 py-3 text-left font-semibold">Montant</th>
+                <th class="px-4 py-3 text-left font-semibold">Statut</th>
+                <th class="px-4 py-3 text-left font-semibold">Date</th>
+                <th class="px-4 py-3 text-left font-semibold">Action</th>
+              </tr>
+            </thead>
+            <tbody id="orders-tbody" class="divide-y divide-slate-100 dark:divide-slate-700">
+              <tr><td colspan="6" class="px-4 py-8 text-center text-slate-400">Chargement…</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- ─── Produits ──────────────────────────────────────────────────── -->
+    <section id="section-products">
+      <div class="flex items-center justify-between mb-4">
+        <h2 class="text-lg font-bold text-slate-700 dark:text-slate-200">🏪 Gestion des produits</h2>
+        <button id="btn-new-product" class="btn btn-primary text-sm gap-1">+ Nouveau produit</button>
+      </div>
+      <div class="card overflow-hidden">
+        <div class="overflow-x-auto">
+          <table class="w-full text-sm">
+            <thead class="bg-slate-50 dark:bg-slate-700/50 text-slate-500 dark:text-slate-400">
+              <tr>
+                <th class="px-4 py-3 text-left font-semibold">Produit</th>
+                <th class="px-4 py-3 text-left font-semibold">SKU</th>
+                <th class="px-4 py-3 text-left font-semibold">Prix</th>
+                <th class="px-4 py-3 text-left font-semibold">Stock</th>
+                <th class="px-4 py-3 text-left font-semibold">Statut</th>
+                <th class="px-4 py-3 text-left font-semibold">Actions</th>
+              </tr>
+            </thead>
+            <tbody id="products-tbody" class="divide-y divide-slate-100 dark:divide-slate-700">
+              <tr><td colspan="6" class="px-4 py-8 text-center text-slate-400">Chargement…</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- ─── Utilisateurs ──────────────────────────────────────────────── -->
+    <section id="section-users">
+      <h2 class="text-lg font-bold text-slate-700 dark:text-slate-200 mb-4">👥 Utilisateurs</h2>
+      <div class="card overflow-hidden">
+        <div class="overflow-x-auto">
+          <table class="w-full text-sm">
+            <thead class="bg-slate-50 dark:bg-slate-700/50 text-slate-500 dark:text-slate-400">
+              <tr>
+                <th class="px-4 py-3 text-left font-semibold">Utilisateur</th>
+                <th class="px-4 py-3 text-left font-semibold">Email</th>
+                <th class="px-4 py-3 text-left font-semibold">Rôle</th>
+                <th class="px-4 py-3 text-left font-semibold">Mode accès.</th>
+                <th class="px-4 py-3 text-left font-semibold">Statut</th>
+                <th class="px-4 py-3 text-left font-semibold">Inscrit le</th>
+              </tr>
+            </thead>
+            <tbody id="users-tbody" class="divide-y divide-slate-100 dark:divide-slate-700">
+              <tr><td colspan="6" class="px-4 py-8 text-center text-slate-400">Chargement…</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- ─── Analytiques ────────────────────────────────────────────────── -->
+    <section id="section-analytics">
+      <h2 class="text-lg font-bold text-slate-700 dark:text-slate-200 mb-4">📈 Analytiques comportementales</h2>
+      <div class="grid lg:grid-cols-2 gap-6">
+        <div class="card p-5">
+          <h3 class="font-semibold text-sm text-slate-600 dark:text-slate-300 mb-4">👁 Produits les plus vus (7 jours)</h3>
+          <canvas id="chart-views" height="250"></canvas>
+        </div>
+        <div class="card p-5 space-y-4">
+          <h3 class="font-semibold text-sm text-slate-600 dark:text-slate-300">📉 Taux d'abandon panier</h3>
+          <div class="text-5xl font-bold text-center text-orange-500 py-6" id="abandon-rate">—%</div>
+          <p class="text-xs text-center text-slate-400">Pourcentage d'utilisateurs ayant un panier sans passer commande</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ─── Fraude ─────────────────────────────────────────────────────── -->
+    <section id="section-fraud">
+      <h2 class="text-lg font-bold text-slate-700 dark:text-slate-200 mb-4">🛡 Alertes Fraude & Sécurité</h2>
+      <div id="fraud-list" class="space-y-3">
+        <div class="text-center text-slate-400 py-8">Chargement…</div>
+      </div>
+    </section>
+
+  </main>
+</div>
+
+<!-- ─── Modal Changement Statut ────────────────────────────────────────────── -->
+<div id="status-modal" class="modal-backdrop hidden">
+  <div class="modal p-6 space-y-4">
+    <h3 class="font-bold">Modifier le statut de la commande</h3>
+    <p class="text-sm text-slate-500" id="status-order-num"></p>
+    <input type="hidden" id="status-order-id" />
+    <select id="status-select" class="form-input w-full">
+      <option value="RECEIVED">Reçue</option>
+      <option value="PREPARING">En préparation</option>
+      <option value="SHIPPED">Expédiée</option>
+      <option value="IN_DELIVERY">En livraison</option>
+      <option value="DELIVERED">Livrée</option>
+      <option value="CANCELLED">Annulée</option>
+      <option value="REFUNDED">Remboursée</option>
+    </select>
+    <div class="flex gap-3">
+      <button id="btn-cancel-status" class="btn btn-ghost flex-1">Annuler</button>
+      <button id="btn-save-status" class="btn btn-primary flex-1">Enregistrer</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast-container" class="fixed top-4 right-4 z-50 flex flex-col gap-2"></div>
+
+<script type="module">
+  import { Admin } from '../assets/js/api.js';
+  import { speak, listenContinuous, parseVoiceCommand, speechSupported } from '../assets/js/voice.js';
+  import { applyAutoTheme, toggleTheme, getUser, requireAdmin, formatCFA, showToast, logout } from '../assets/js/app.js';
+
+  applyAutoTheme();
+  if (!requireAdmin()) throw new Error();
+
+  const user = getUser();
+  document.getElementById('admin-name').textContent = user ? `${user.first_name} ${user.name}` : 'Admin';
+  document.getElementById('page-date').textContent = new Date().toLocaleDateString('fr-FR', {
+    weekday: 'long', day: 'numeric', month: 'long', year: 'numeric'
+  });
+
+  document.getElementById('btn-theme').addEventListener('click', () => {
+    const d = toggleTheme();
+    document.getElementById('btn-theme').textContent = d ? '☀️' : '🌙';
+  });
+  document.getElementById('btn-logout').addEventListener('click', () => {
+    logout(); window.location.href = 'login.html';
+  });
+  document.getElementById('btn-refresh').addEventListener('click', loadAll);
+
+  // ─── Chargement dashboard ─────────────────────────────────────────────────
+  let salesChart = null, ordersChart = null, viewsChart = null;
+
+  async function loadDashboard() {
+    try {
+      const res = await Admin.dashboard();
+      const d   = res.data || res;
+      document.getElementById('kpi-ca').textContent    = formatCFA(d.kpi.ca_jour || 0);
+      document.getElementById('kpi-orders').textContent = d.kpi.commandes_jour || 0;
+      document.getElementById('kpi-fraud').textContent  = d.kpi.alertes_fraude || 0;
+      document.getElementById('kpi-stock').textContent  = d.kpi.produits_alerte || 0;
+      renderSalesChart(d.stats_ventes || []);
+      renderOrdersTable(d.commandes_recentes || []);
+    } catch (e) { showToast('Erreur dashboard : ' + e.message, 'error'); }
+  }
+
+  function renderSalesChart(data) {
+    const ctx = document.getElementById('chart-sales').getContext('2d');
+    if (salesChart) salesChart.destroy();
+    const isDark = document.documentElement.classList.contains('dark');
+    const labels = data.map(d => new Date(d.date).toLocaleDateString('fr-FR', { day: '2-digit', month: 'short' }));
+    const values = data.map(d => d.total || 0);
+    salesChart = new Chart(ctx, {
+      type: 'line',
+      data: {
+        labels,
+        datasets: [{
+          label: 'CA (XOF)',
+          data: values,
+          borderColor: '#2563eb',
+          backgroundColor: 'rgba(37,99,235,0.1)',
+          fill: true,
+          tension: 0.4,
+          pointRadius: 4,
+          pointBackgroundColor: '#2563eb'
+        }]
+      },
+      options: {
+        responsive: true,
+        plugins: { legend: { display: false } },
+        scales: {
+          x: { grid: { color: isDark ? '#334155' : '#e2e8f0' }, ticks: { color: isDark ? '#94a3b8' : '#64748b' } },
+          y: { grid: { color: isDark ? '#334155' : '#e2e8f0' }, ticks: { color: isDark ? '#94a3b8' : '#64748b', callback: v => formatCFA(v) } }
+        }
+      }
+    });
+  }
+
+  // ─── Commandes ────────────────────────────────────────────────────────────
+  async function loadOrders() {
+    try {
+      const res = await Admin.orders({ limit: 20 });
+      renderOrdersTable(res.data || res || []);
+    } catch (e) { showToast('Erreur commandes : ' + e.message, 'error'); }
+  }
+
+  const STATUS_LABELS = {
+    RECEIVED: 'Reçue', PREPARING: 'Préparation', SHIPPED: 'Expédiée',
+    IN_DELIVERY: 'Livraison', DELIVERED: 'Livrée', CANCELLED: 'Annulée', REFUNDED: 'Remboursée'
+  };
+
+  function renderOrdersTable(orders) {
+    const tbody = document.getElementById('orders-tbody');
+    if (!orders.length) {
+      tbody.innerHTML = '<tr><td colspan="6" class="px-4 py-8 text-center text-slate-400">Aucune commande</td></tr>';
+      return;
+    }
+    tbody.innerHTML = orders.map(o => `
+      <tr class="hover:bg-slate-50 dark:hover:bg-slate-700/30 transition-colors">
+        <td class="px-4 py-3 font-mono text-xs font-bold text-primary">${o.order_number || '#' + o.id}</td>
+        <td class="px-4 py-3 text-slate-700 dark:text-slate-300">${o.first_name || ''} ${o.name || ''}</td>
+        <td class="px-4 py-3 font-semibold">${formatCFA(o.amount_ttc)}</td>
+        <td class="px-4 py-3">
+          <span class="badge status-${o.status} text-xs">${STATUS_LABELS[o.status] || o.status}</span>
+        </td>
+        <td class="px-4 py-3 text-xs text-slate-400">${new Date(o.created_at).toLocaleDateString('fr-FR')}</td>
+        <td class="px-4 py-3">
+          <button class="btn-change-status btn btn-ghost text-xs text-primary" 
+                  data-id="${o.id}" data-num="${o.order_number}" data-status="${o.status}">
+            ✏️ Modifier
+          </button>
+        </td>
+      </tr>`).join('');
+
+    // Graphique statuts
+    const statusCounts = {};
+    orders.forEach(o => statusCounts[o.status] = (statusCounts[o.status] || 0) + 1);
+    renderOrdersChart(Object.keys(statusCounts), Object.values(statusCounts));
+
+    document.querySelectorAll('.btn-change-status').forEach(btn => {
+      btn.addEventListener('click', () => openStatusModal(btn.dataset.id, btn.dataset.num, btn.dataset.status));
+    });
+  }
+
+  function renderOrdersChart(labels, data) {
+    const ctx = document.getElementById('chart-orders').getContext('2d');
+    if (ordersChart) ordersChart.destroy();
+    ordersChart = new Chart(ctx, {
+      type: 'doughnut',
+      data: {
+        labels: labels.map(l => STATUS_LABELS[l] || l),
+        datasets: [{
+          data,
+          backgroundColor: ['#3b82f6','#f59e0b','#8b5cf6','#06b6d4','#22c55e','#ef4444','#94a3b8'],
+          borderWidth: 0
+        }]
+      },
+      options: {
+        responsive: true,
+        plugins: { legend: { position: 'right', labels: { font: { size: 11 } } } }
+      }
+    });
+  }
+
+  // Modal statut
+  function openStatusModal(id, num, currentStatus) {
+    document.getElementById('status-order-id').value = id;
+    document.getElementById('status-order-num').textContent = `Commande : ${num}`;
+    document.getElementById('status-select').value = currentStatus;
+    document.getElementById('status-modal').classList.remove('hidden');
+  }
+  document.getElementById('btn-cancel-status').addEventListener('click', () =>
+    document.getElementById('status-modal').classList.add('hidden'));
+  document.getElementById('btn-save-status').addEventListener('click', async () => {
+    const id = document.getElementById('status-order-id').value;
+    const status = document.getElementById('status-select').value;
+    try {
+      await Admin.updateOrderStatus(id, status);
+      showToast('Statut mis à jour', 'success');
+      document.getElementById('status-modal').classList.add('hidden');
+      loadOrders();
+    } catch (e) { showToast(e.message, 'error'); }
+  });
+  document.getElementById('btn-refresh-orders').addEventListener('click', loadOrders);
+
+  // ─── Produits ────────────────────────────────────────────────────────────
+  async function loadProducts() {
+    try {
+      const res = await Admin.products();
+      const products = res.data || res || [];
+      const tbody = document.getElementById('products-tbody');
+      if (!products.length) {
+        tbody.innerHTML = '<tr><td colspan="6" class="px-4 py-8 text-center text-slate-400">Aucun produit</td></tr>';
+        return;
+      }
+      tbody.innerHTML = products.map(p => `
+        <tr class="hover:bg-slate-50 dark:hover:bg-slate-700/30 transition-colors">
+          <td class="px-4 py-3 font-medium">${p.name}</td>
+          <td class="px-4 py-3 font-mono text-xs text-slate-400">${p.sku}</td>
+          <td class="px-4 py-3 font-semibold text-primary">${formatCFA(p.promo_price || p.price)}</td>
+          <td class="px-4 py-3">
+            <span class="${p.stock <= 5 ? 'text-red-500 font-bold' : 'text-slate-700 dark:text-slate-300'}">${p.stock}</span>
+            ${p.stock <= 5 ? '<span class="text-xs text-red-400 ml-1">⚠ Alerte</span>' : ''}
+          </td>
+          <td class="px-4 py-3">
+            <span class="badge ${p.status === 'ACTIVE' ? 'badge-success' : 'badge-danger'} text-xs">${p.status}</span>
+          </td>
+          <td class="px-4 py-3 flex gap-1">
+            <button class="btn btn-ghost text-xs text-primary">✏️</button>
+            <button class="btn btn-ghost text-xs text-red-500">🗑</button>
+          </td>
+        </tr>`).join('');
+    } catch (e) { showToast('Erreur produits : ' + e.message, 'error'); }
+  }
+  document.getElementById('btn-new-product').addEventListener('click', () => {
+    showToast('Formulaire de création (à implémenter)', 'info');
+  });
+
+  // ─── Utilisateurs ────────────────────────────────────────────────────────
+  async function loadUsers() {
+    try {
+      const res = await Admin.users();
+      const users = res.data || res || [];
+      const tbody = document.getElementById('users-tbody');
+      const modeLabels = { STANDARD:'Standard', VOCAL:'🎙️ Vocal', HAUTE_VISIBILITE:'👁 Malvoyant', LANGUE_SIGNES:'🤟 LSF' };
+      tbody.innerHTML = users.map(u => `
+        <tr class="hover:bg-slate-50 dark:hover:bg-slate-700/30 transition-colors">
+          <td class="px-4 py-3 font-medium">${u.first_name || ''} ${u.name || ''}</td>
+          <td class="px-4 py-3 text-xs text-slate-400">${u.email}</td>
+          <td class="px-4 py-3">
+            <span class="badge ${u.role === 'ADMIN' ? 'badge-danger' : 'badge-primary'} text-xs">${u.role}</span>
+          </td>
+          <td class="px-4 py-3 text-xs">${modeLabels[u.accessibility_mode] || 'Standard'}</td>
+          <td class="px-4 py-3">
+            <span class="badge ${u.status === 'ACTIVE' ? 'badge-success' : 'badge-danger'} text-xs">${u.status}</span>
+          </td>
+          <td class="px-4 py-3 text-xs text-slate-400">${new Date(u.created_at).toLocaleDateString('fr-FR')}</td>
+        </tr>`).join('');
+    } catch (e) { showToast('Erreur utilisateurs : ' + e.message, 'error'); }
+  }
+
+  // ─── Analytiques ─────────────────────────────────────────────────────────
+  async function loadAnalytics() {
+    try {
+      const res = await Admin.analytics();
+      const d   = res.data || res;
+      document.getElementById('abandon-rate').textContent = (d.cart_abandon_rate || 0).toFixed(1) + '%';
+
+      const mostViewed = d.most_viewed || [];
+      const ctx = document.getElementById('chart-views').getContext('2d');
+      if (viewsChart) viewsChart.destroy();
+      viewsChart = new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels: mostViewed.map(p => p.name?.substring(0, 20) || '—'),
+          datasets: [{ label: 'Vues', data: mostViewed.map(p => p.views || 0), backgroundColor: '#7c3aed', borderRadius: 6 }]
+        },
+        options: {
+          responsive: true,
+          plugins: { legend: { display: false } },
+          scales: { x: { ticks: { maxRotation: 45, font: { size: 10 } } }, y: { beginAtZero: true } }
+        }
+      });
+    } catch (e) { showToast('Erreur analytiques : ' + e.message, 'error'); }
+  }
+
+  // ─── Fraude ───────────────────────────────────────────────────────────────
+  async function loadFraud() {
+    try {
+      const res    = await Admin.fraudAlerts();
+      const alerts = res.data || res || [];
+      const container = document.getElementById('fraud-list');
+      if (!alerts.length) {
+        container.innerHTML = '<div class="card p-6 text-center text-green-500">✓ Aucune alerte de fraude active</div>';
+        return;
+      }
+      const severity = { HIGH:'bg-red-100 dark:bg-red-900/30 border-red-300', MEDIUM:'bg-yellow-100 dark:bg-yellow-900/30 border-yellow-300', LOW:'bg-blue-100 dark:bg-blue-900/30 border-blue-300' };
+      container.innerHTML = alerts.map(a => `
+        <div class="card border-l-4 p-4 flex items-start justify-between gap-4 ${severity[a.severity] || severity.LOW}">
+          <div class="flex-1">
+            <div class="flex items-center gap-2 mb-1">
+              <span class="badge ${a.severity === 'HIGH' ? 'badge-danger' : a.severity === 'MEDIUM' ? 'badge-warning' : 'badge-primary'} text-xs">${a.severity || 'LOW'}</span>
+              <span class="text-xs font-semibold">${a.type || 'Activité suspecte'}</span>
+            </div>
+            <p class="text-sm text-slate-600 dark:text-slate-300">${a.details || '—'}</p>
+            <p class="text-xs text-slate-400 mt-1">Utilisateur : ${a.email || a.user_id} — ${new Date(a.detected_at).toLocaleDateString('fr-FR')}</p>
+          </div>
+          <span class="badge ${a.status === 'OPEN' ? 'badge-danger' : 'badge-success'} text-xs whitespace-nowrap">${a.status}</span>
+        </div>`).join('');
+    } catch (e) { showToast('Erreur fraude : ' + e.message, 'error'); }
+  }
+
+  // ─── Assistant vocal Admin ────────────────────────────────────────────────
+  let adminVoiceSession = null;
+
+  document.getElementById('btn-voice-admin').addEventListener('click', () => {
+    if (!speechSupported) { showToast('Vocal non supporté', 'warning'); return; }
+    if (adminVoiceSession) {
+      adminVoiceSession.stop(); adminVoiceSession = null;
+      document.getElementById('voice-panel').classList.add('hidden');
+    } else {
+      document.getElementById('voice-panel').classList.remove('hidden');
+      speak('Assistant vocal administrateur activé. Posez votre question.').then(() => {
+        adminVoiceSession = listenContinuous(handleAdminVoice);
+      });
+    }
+  });
+
+  document.getElementById('btn-stop-voice').addEventListener('click', () => {
+    if (adminVoiceSession) { adminVoiceSession.stop(); adminVoiceSession = null; }
+    document.getElementById('voice-panel').classList.add('hidden');
+  });
+
+  async function handleAdminVoice(text) {
+    document.getElementById('voice-transcript').textContent = `"${text}"`;
+    const { intent } = parseVoiceCommand(text);
+
+    if (intent === 'admin_ca') {
+      const d = await Admin.dashboard();
+      const ca = d.data?.kpi?.ca_jour || 0;
+      await speak(`Le chiffre d'affaires d'aujourd'hui est de ${Number(ca).toLocaleString('fr-FR')} francs CFA.`);
+    } else if (intent === 'admin_users') {
+      const d = await Admin.users();
+      const count = (d.data || d).length;
+      await speak(`Il y a actuellement ${count} utilisateurs enregistrés.`);
+    } else if (intent === 'admin_fraud') {
+      const d = await Admin.fraudAlerts();
+      const count = (d.data || d).length;
+      await speak(`Il y a ${count} alerte${count > 1 ? 's' : ''} de fraude en attente.`);
+    } else if (intent === 'admin_top_products') {
+      const d = await Admin.analytics();
+      const top = (d.data || d).most_viewed?.[0];
+      if (top) await speak(`Le produit le plus consulté est ${top.name} avec ${top.views} vues.`);
+    } else if (intent === 'admin_stock') {
+      const d = await Admin.dashboard();
+      const alerte = d.data?.kpi?.produits_alerte || 0;
+      await speak(`${alerte} produit${alerte > 1 ? 's sont' : ' est'} en alerte de stock.`);
+    } else {
+      await speak('Je n\'ai pas compris. Essayez : chiffre d\'affaires, alertes fraude, top produits, ou stock.');
+    }
+  }
+
+  // ─── Chargement global ────────────────────────────────────────────────────
+  async function loadAll() {
+    await Promise.all([loadDashboard(), loadOrders(), loadProducts(), loadUsers(), loadAnalytics(), loadFraud()]);
+  }
+
+  loadAll();
+
+  // Masquer le vocal si non supporté
+  if (!speechSupported) document.getElementById('btn-voice-admin').style.display = 'none';
+</script>
+</body>
+</html>

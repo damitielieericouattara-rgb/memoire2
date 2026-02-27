@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Finaliser la commande — E-Commerce Intelligent</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="../assets/css/style.css"/>
+  <script>tailwind.config = { darkMode: 'class' }</script>
+</head>
+<body class="bg-slate-50 dark:bg-slate-900 min-h-screen">
+
+<nav class="navbar">
+  <a href="dashboard.html" class="flex items-center gap-2 font-bold text-slate-800 dark:text-white">
+    ← 🛍️ Retour à la boutique
+  </a>
+  <h2 class="font-semibold text-slate-700 dark:text-slate-200">✅ Finaliser la commande</h2>
+  <button id="btn-theme" class="btn btn-ghost text-xl">🌙</button>
+</nav>
+
+<main class="max-w-4xl mx-auto px-4 py-8">
+  <div class="grid lg:grid-cols-5 gap-8">
+
+    <!-- ─── Formulaire ─────────────────────────────────────────────────── -->
+    <div class="lg:col-span-3 space-y-6">
+
+      <!-- Adresse de livraison -->
+      <div class="card p-6 space-y-4">
+        <div class="flex items-center justify-between">
+          <h3 class="font-bold text-slate-800 dark:text-white">📍 Adresse de livraison</h3>
+          <button id="btn-voice-address" class="btn btn-ghost gap-1 text-sm" title="Remplir par voix">
+            🎙️ Vocal
+          </button>
+        </div>
+        <div class="grid grid-cols-1 gap-4">
+          <div class="form-group">
+            <label class="form-label">Rue / Quartier</label>
+            <input id="street" type="text" class="form-input" placeholder="Cocody, Rue des Jardins" />
+          </div>
+          <div class="grid grid-cols-2 gap-4">
+            <div class="form-group">
+              <label class="form-label">Ville</label>
+              <input id="city" type="text" class="form-input" value="Abidjan" />
+            </div>
+            <div class="form-group">
+              <label class="form-label">Pays</label>
+              <input id="country" type="text" class="form-input" value="Côte d'Ivoire" />
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Notes de livraison (optionnel)</label>
+            <textarea id="notes" class="form-input resize-none h-16" placeholder="Sonnez au portail bleu…"></textarea>
+          </div>
+        </div>
+      </div>
+
+      <!-- Mode de paiement -->
+      <div class="card p-6 space-y-4">
+        <h3 class="font-bold text-slate-800 dark:text-white">💳 Mode de paiement</h3>
+        <div class="grid grid-cols-2 gap-3" id="payment-selector">
+          <button data-method="WALLET" class="pay-btn active card p-4 text-center border-2 border-primary bg-blue-50 dark:bg-blue-900/30 transition-all">
+            <div class="text-2xl mb-1">💰</div>
+            <div class="font-semibold text-sm">Wallet</div>
+            <div class="text-xs text-slate-400" id="wallet-info">Solde disponible…</div>
+          </button>
+          <button data-method="MOBILE_MONEY" class="pay-btn card p-4 text-center border-2 border-transparent transition-all">
+            <div class="text-2xl mb-1">📱</div>
+            <div class="font-semibold text-sm">Mobile Money</div>
+            <div class="text-xs text-slate-400">Orange / MTN</div>
+          </button>
+          <button data-method="CASH_ON_DELIVERY" class="pay-btn card p-4 text-center border-2 border-transparent transition-all">
+            <div class="text-2xl mb-1">💵</div>
+            <div class="font-semibold text-sm">Paiement à la livraison</div>
+            <div class="text-xs text-slate-400">Cash</div>
+          </button>
+          <button data-method="CARD" class="pay-btn card p-4 text-center border-2 border-transparent transition-all">
+            <div class="text-2xl mb-1">💳</div>
+            <div class="font-semibold text-sm">Carte bancaire</div>
+            <div class="text-xs text-slate-400">Visa / Mastercard</div>
+          </button>
+        </div>
+        <input type="hidden" id="payment_method" value="WALLET" />
+      </div>
+
+      <!-- Boutons d'action -->
+      <div class="flex gap-3">
+        <a href="dashboard.html" class="btn btn-ghost flex-1">← Continuer les achats</a>
+        <button id="btn-order" class="btn btn-primary flex-1 py-3 text-base">
+          <span id="btn-order-text">✅ Confirmer la commande</span>
+          <span id="btn-order-spin" class="hidden spinner !w-5 !h-5 !border-2 !border-white/30 !border-t-white"></span>
+        </button>
+      </div>
+    </div>
+
+    <!-- ─── Résumé commande ────────────────────────────────────────────── -->
+    <div class="lg:col-span-2 space-y-4">
+      <div class="card p-5 space-y-4 sticky top-20">
+        <h3 class="font-bold text-slate-800 dark:text-white">🛒 Récapitulatif</h3>
+
+        <div id="summary-items" class="space-y-2 max-h-60 overflow-y-auto">
+          <div class="text-center text-slate-400 py-4">Chargement…</div>
+        </div>
+
+        <div class="border-t dark:border-slate-700 pt-3 space-y-2 text-sm">
+          <div class="flex justify-between text-slate-500">
+            <span>Sous-total HT</span><span id="sum-ht">0 XOF</span>
+          </div>
+          <div class="flex justify-between text-slate-500">
+            <span>TVA (18%)</span><span id="sum-tva">0 XOF</span>
+          </div>
+          <div class="flex justify-between text-slate-500">
+            <span>Frais de livraison</span><span>2 500 XOF</span>
+          </div>
+          <div class="flex justify-between font-bold text-base pt-2 border-t dark:border-slate-700">
+            <span>Total TTC</span><span id="sum-ttc" class="text-primary">0 XOF</span>
+          </div>
+        </div>
+
+        <div id="wallet-warning" class="hidden bg-yellow-50 dark:bg-yellow-900/30 text-yellow-700 
+             dark:text-yellow-400 border border-yellow-200 rounded-lg p-3 text-xs">
+          ⚠ Solde wallet insuffisant pour cette commande.
+          <a href="wallet.html" class="underline font-semibold">Recharger</a>
+        </div>
+
+        <!-- Lecture vocale -->
+        <button id="btn-read-summary" class="btn btn-ghost w-full text-sm gap-2">
+          🔊 Lire le récapitulatif
+        </button>
+      </div>
+    </div>
+  </div>
+</main>
+
+<!-- Confirmation -->
+<div id="success-modal" class="modal-backdrop hidden">
+  <div class="modal p-8 text-center space-y-4">
+    <div class="text-6xl">🎉</div>
+    <h3 class="text-xl font-bold text-green-600">Commande confirmée !</h3>
+    <p class="text-slate-600 dark:text-slate-300" id="success-msg-text"></p>
+    <div class="flex gap-3">
+      <a href="orders.html" class="btn btn-outline flex-1">Voir mes commandes</a>
+      <a href="dashboard.html" class="btn btn-primary flex-1">Continuer</a>
+    </div>
+  </div>
+</div>
+
+<div id="toast-container" class="fixed top-4 right-4 z-50 flex flex-col gap-2"></div>
+
+<script type="module">
+  import { Panier, Commandes, Wallet } from '../assets/js/api.js';
+  import { speak, listenOnce, speechSupported } from '../assets/js/voice.js';
+  import { applyAutoTheme, toggleTheme, getUser, getWallet, requireAuth, formatCFA, showToast } from '../assets/js/app.js';
+
+  applyAutoTheme();
+  if (!requireAuth()) throw new Error();
+
+  const user   = getUser();
+  const wallet = getWallet();
+  let cartItems = [];
+  let amountTTC = 0;
+
+  document.getElementById('btn-theme').addEventListener('click', () => {
+    const d = toggleTheme();
+    document.getElementById('btn-theme').textContent = d ? '☀️' : '🌙';
+  });
+
+  // Infos wallet
+  if (wallet) {
+    document.getElementById('wallet-info').textContent = formatCFA(wallet.balance);
+  }
+
+  // ─── Mode paiement ────────────────────────────────────────────────────────
+  document.querySelectorAll('.pay-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.pay-btn').forEach(b => {
+        b.classList.remove('border-primary', 'bg-blue-50', 'dark:bg-blue-900/30');
+        b.classList.add('border-transparent');
+      });
+      btn.classList.remove('border-transparent');
+      btn.classList.add('border-primary', 'bg-blue-50');
+      document.getElementById('payment_method').value = btn.dataset.method;
+      checkWalletBalance();
+    });
+  });
+
+  function checkWalletBalance() {
+    const method  = document.getElementById('payment_method').value;
+    const balance = wallet ? Number(wallet.balance) : 0;
+    const warning = document.getElementById('wallet-warning');
+    if (method === 'WALLET' && balance < amountTTC) {
+      warning.classList.remove('hidden');
+    } else {
+      warning.classList.add('hidden');
+    }
+  }
+
+  // ─── Chargement panier ────────────────────────────────────────────────────
+  async function loadCart() {
+    const res  = await Panier.get();
+    cartItems  = res.data || res || [];
+    if (!cartItems.length) {
+      window.location.href = 'dashboard.html';
+      return;
+    }
+
+    const container = document.getElementById('summary-items');
+    let ht = 0;
+    container.innerHTML = cartItems.map(item => {
+      const sub = item.unit_price * item.quantity;
+      ht += sub;
+      return `<div class="flex items-center gap-2 text-sm">
+        <span class="flex-1 truncate">${item.product_name || item.name}</span>
+        <span class="text-slate-400 text-xs">×${item.quantity}</span>
+        <span class="font-semibold text-primary">${formatCFA(sub)}</span>
+      </div>`;
+    }).join('');
+
+    const tva = ht * 0.18;
+    amountTTC = ht + tva + 2500;
+    document.getElementById('sum-ht').textContent  = formatCFA(ht);
+    document.getElementById('sum-tva').textContent = formatCFA(tva);
+    document.getElementById('sum-ttc').textContent = formatCFA(amountTTC);
+    checkWalletBalance();
+  }
+
+  // ─── Commande vocale adresse ──────────────────────────────────────────────
+  if (!speechSupported) document.getElementById('btn-voice-address').style.display = 'none';
+
+  document.getElementById('btn-voice-address').addEventListener('click', async () => {
+    await speak('Dites votre rue ou quartier.');
+    const street = await listenOnce();
+    document.getElementById('street').value = street;
+    await speak('Quelle ville ?');
+    const city = await listenOnce();
+    document.getElementById('city').value = city;
+    await speak('Merci. Adresse enregistrée.');
+  });
+
+  // ─── Lire récapitulatif ───────────────────────────────────────────────────
+  document.getElementById('btn-read-summary').addEventListener('click', async () => {
+    const items = cartItems.map(i => `${i.quantity} ${i.product_name || i.name}`).join(', ');
+    await speak(`Votre commande : ${items}. Total : ${Number(amountTTC).toLocaleString('fr-FR')} francs CFA. Mode de paiement : ${document.getElementById('payment_method').value}.`);
+  });
+
+  // ─── Confirmer commande ───────────────────────────────────────────────────
+  document.getElementById('btn-order').addEventListener('click', async () => {
+    const btn  = document.getElementById('btn-order');
+    const txt  = document.getElementById('btn-order-text');
+    const spin = document.getElementById('btn-order-spin');
+
+    btn.disabled = true; txt.classList.add('hidden'); spin.classList.remove('hidden');
+
+    try {
+      const data = {
+        payment_method: document.getElementById('payment_method').value,
+        street:  document.getElementById('street').value || 'Non spécifiée',
+        city:    document.getElementById('city').value   || 'Abidjan',
+        country: document.getElementById('country').value || "Côte d'Ivoire",
+        notes:   document.getElementById('notes').value  || null,
+      };
+
+      const res = await Commandes.create(data);
+      if (res.success) {
+        document.getElementById('success-msg-text').textContent =
+          `Commande N° ${res.data.order_number} — ${formatCFA(res.data.amount_ttc)}. Livraison estimée sous 3 jours.`;
+        document.getElementById('success-modal').classList.remove('hidden');
+        await speak(`Votre commande ${res.data.order_number} a été confirmée. Merci pour votre achat !`);
+      }
+    } catch (e) {
+      showToast(e.message, 'error');
+      await speak(`Erreur : ${e.message}`);
+    } finally {
+      btn.disabled = false; txt.classList.remove('hidden'); spin.classList.add('hidden');
+    }
+  });
+
+  loadCart();
+</script>
+</body>
+</html>

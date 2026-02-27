@@ -1,0 +1,19 @@
+# /backend/.htaccess
+Options -Indexes
+RewriteEngine On
+
+# Si mod_rewrite est actif : tout vers index.php
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule ^(.*)$ index.php [QSA,L]
+
+# Désactive affichage erreurs (gérées par nos handlers JSON)
+<IfModule mod_php.c>
+    php_flag display_errors Off
+    php_flag log_errors On
+</IfModule>
+
+<IfModule mod_php8.c>
+    php_flag display_errors Off
+    php_flag log_errors On
+</IfModule>

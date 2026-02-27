@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="fr" class="">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Connexion — E-Commerce Intelligent</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="../assets/css/style.css" />
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: { extend: { colors: { primary: '#2563eb', secondary: '#7c3aed' } } }
+    }
+  </script>
+</head>
+<body class="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-violet-50 dark:from-slate-900 dark:to-slate-800 p-4">
+
+<!-- ─── Bouton thème ─────────────────────────────────────────────────────── -->
+<button id="btn-theme" class="fixed top-4 right-4 btn btn-ghost text-xl z-50">🌙</button>
+
+<!-- ─── Card Connexion ────────────────────────────────────────────────────── -->
+<div class="card w-full max-w-md p-8 space-y-6">
+  <!-- Logo -->
+  <div class="text-center space-y-2">
+    <div class="text-4xl">🛍️</div>
+    <h1 class="text-2xl font-bold text-slate-800 dark:text-white">E-Commerce Intelligent</h1>
+    <p class="text-sm text-slate-500 dark:text-slate-400">Connectez-vous à votre compte</p>
+  </div>
+
+  <!-- Message d'erreur -->
+  <div id="error-msg" class="hidden bg-red-50 dark:bg-red-900/30 text-red-700 dark:text-red-400 
+       border border-red-200 dark:border-red-800 rounded-lg p-3 text-sm text-center"></div>
+
+  <!-- Formulaire -->
+  <form id="login-form" class="space-y-4" novalidate>
+    <div class="form-group">
+      <label class="form-label" for="email">Adresse email</label>
+      <input id="email" type="email" class="form-input"
+             placeholder="vous@exemple.com" required autocomplete="email" />
+    </div>
+
+    <div class="form-group">
+      <label class="form-label" for="password">Mot de passe</label>
+      <div class="relative">
+        <input id="password" type="password" class="form-input pr-10"
+               placeholder="••••••••" required autocomplete="current-password" />
+        <button type="button" id="toggle-pwd"
+                class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-700">
+          👁
+        </button>
+      </div>
+    </div>
+
+    <button type="submit" id="btn-login"
+            class="btn btn-primary w-full text-base py-3">
+      <span id="btn-login-text">Se connecter</span>
+      <span id="btn-login-spinner" class="hidden">
+        <span class="spinner !w-5 !h-5 !border-2 !border-white/30 !border-t-white"></span>
+      </span>
+    </button>
+  </form>
+
+  <!-- Séparateur -->
+  <div class="flex items-center gap-3">
+    <hr class="flex-1 border-slate-200 dark:border-slate-700" />
+    <span class="text-xs text-slate-400">ou</span>
+    <hr class="flex-1 border-slate-200 dark:border-slate-700" />
+  </div>
+
+  <!-- Connexion vocale -->
+  <div id="voice-section" class="space-y-3">
+    <button id="btn-voice-login" class="btn btn-outline w-full gap-2">
+      🎙️ Connexion par commande vocale
+    </button>
+    <div id="voice-feedback" class="hidden text-center text-sm text-slate-500 dark:text-slate-400
+         bg-slate-100 dark:bg-slate-700/50 rounded-lg p-3 font-mono"></div>
+  </div>
+
+  <!-- Lien inscription -->
+  <p class="text-center text-sm text-slate-500 dark:text-slate-400">
+    Pas encore de compte ?
+    <a href="register.html" class="font-semibold text-primary hover:underline">Créer un compte</a>
+  </p>
+</div>
+
+<!-- ─── Toast container ───────────────────────────────────────────────────── -->
+<div id="toast-container" class="fixed top-4 right-16 z-50 flex flex-col gap-2"></div>
+
+<script type="module">
+  import { Auth, logout } from '../assets/js/api.js';
+  import { speak, listenOnce, speechSupported } from '../assets/js/voice.js';
+  import { applyAutoTheme, toggleTheme, setUser, setWallet, redirectIfLoggedIn, showToast } from '../assets/js/app.js';
+
+  // Init
+  applyAutoTheme();
+  redirectIfLoggedIn();
+
+  // Thème
+  document.getElementById('btn-theme').addEventListener('click', () => {
+    const dark = toggleTheme();
+    document.getElementById('btn-theme').textContent = dark ? '☀️' : '🌙';
+  });
+
+  // Afficher/masquer MDP
+  document.getElementById('toggle-pwd').addEventListener('click', () => {
+    const pwd = document.getElementById('password');
+    pwd.type = pwd.type === 'password' ? 'text' : 'password';
+  });
+
+  // ─── Connexion classique ────────────────────────────────────────────────
+  document.getElementById('login-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    await doLogin(
+      document.getElementById('email').value.trim(),
+      document.getElementById('password').value
+    );
+  });
+
+  async function doLogin(email, password) {
+    const btn  = document.getElementById('btn-login');
+    const txt  = document.getElementById('btn-login-text');
+    const spin = document.getElementById('btn-login-spinner');
+    const err  = document.getElementById('error-msg');
+
+    err.classList.add('hidden');
+    btn.disabled = true;
+    txt.classList.add('hidden');
+    spin.classList.remove('hidden');
+
+    try {
+      const res = await Auth.login(email, password);
+      if (res.success) {
+        localStorage.setItem('access_token',  res.data.access_token);
+        localStorage.setItem('refresh_token', res.data.refresh_token);
+        setUser(res.data.user);
+        setWallet(res.data.wallet);
+        showToast(`Bienvenue ${res.data.user.first_name} !`, 'success');
+        setTimeout(() => {
+          window.location.href = res.data.user.role === 'ADMIN'
+            ? 'admin.html' : 'dashboard.html';
+        }, 800);
+      }
+    } catch (error) {
+      err.textContent = error.message || 'Email ou mot de passe incorrect.';
+      err.classList.remove('hidden');
+      btn.disabled = false;
+      txt.classList.remove('hidden');
+      spin.classList.add('hidden');
+    }
+  }
+
+  // ─── Connexion vocale ───────────────────────────────────────────────────
+  const btnVoice    = document.getElementById('btn-voice-login');
+  const voiceFb     = document.getElementById('voice-feedback');
+
+  if (!speechSupported) btnVoice.style.display = 'none';
+
+  btnVoice.addEventListener('click', async () => {
+    voiceFb.classList.remove('hidden');
+    voiceFb.textContent = '🎙️ Dites votre email…';
+    btnVoice.disabled = true;
+
+    try {
+      await speak('Dites votre adresse email.');
+      const email = await listenOnce({ onInterim: t => voiceFb.textContent = '🎙️ ' + t });
+      voiceFb.textContent = `Email : ${email}`;
+
+      await speak('Maintenant, dites votre mot de passe.');
+      voiceFb.textContent = '🎙️ Dites votre mot de passe…';
+      const password = await listenOnce();
+
+      voiceFb.textContent = '⏳ Connexion en cours…';
+      await doLogin(email.trim(), password.trim());
+    } catch (err) {
+      voiceFb.textContent = '❌ ' + (err.message || 'Erreur vocale.');
+      await speak('Une erreur est survenue. Veuillez réessayer.');
+    } finally {
+      btnVoice.disabled = false;
+    }
+  });
+</script>
+</body>
+</html>

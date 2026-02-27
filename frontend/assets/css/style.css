@@ -1,0 +1,293 @@
+/* style.css — Styles globaux & modes d'accessibilité */
+
+/* ─── Variables CSS ──────────────────────────────────────────────────────── */
+:root {
+  --color-primary:   #2563eb;
+  --color-secondary: #7c3aed;
+  --color-success:   #16a34a;
+  --color-danger:    #dc2626;
+  --color-warning:   #d97706;
+  --color-bg:        #f8fafc;
+  --color-surface:   #ffffff;
+  --color-text:      #1e293b;
+  --color-muted:     #64748b;
+  --color-border:    #e2e8f0;
+  --radius:          0.75rem;
+  --shadow:          0 4px 24px rgba(0,0,0,0.08);
+  --shadow-lg:       0 8px 40px rgba(0,0,0,0.14);
+  --font-base:       'Inter', 'Segoe UI', sans-serif;
+  --transition:      0.2s ease;
+}
+
+/* ─── Dark mode ─────────────────────────────────────────────────────────── */
+.dark {
+  --color-bg:      #0f172a;
+  --color-surface: #1e293b;
+  --color-text:    #f1f5f9;
+  --color-muted:   #94a3b8;
+  --color-border:  #334155;
+}
+
+/* ─── Base ──────────────────────────────────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+html { scroll-behavior: smooth; }
+
+body {
+  font-family: var(--font-base);
+  background: var(--color-bg);
+  color: var(--color-text);
+  min-height: 100vh;
+  transition: background var(--transition), color var(--transition);
+}
+
+/* ─── Composants réutilisables ──────────────────────────────────────────── */
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.6rem 1.25rem;
+  border-radius: var(--radius);
+  font-weight: 600;
+  font-size: 0.875rem;
+  cursor: pointer;
+  border: none;
+  transition: all var(--transition);
+  text-decoration: none;
+}
+.btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+.btn-primary { background: var(--color-primary); color: #fff; }
+.btn-primary:hover:not(:disabled) { background: #1d4ed8; transform: translateY(-1px); box-shadow: var(--shadow); }
+
+.btn-secondary { background: var(--color-secondary); color: #fff; }
+.btn-secondary:hover:not(:disabled) { background: #6d28d9; }
+
+.btn-success { background: var(--color-success); color: #fff; }
+.btn-danger  { background: var(--color-danger);  color: #fff; }
+
+.btn-outline {
+  background: transparent;
+  border: 2px solid var(--color-primary);
+  color: var(--color-primary);
+}
+.btn-outline:hover:not(:disabled) {
+  background: var(--color-primary);
+  color: #fff;
+}
+
+.btn-ghost {
+  background: transparent;
+  color: var(--color-text);
+}
+.btn-ghost:hover { background: var(--color-border); }
+
+/* Bouton vocal */
+.btn-voice {
+  background: linear-gradient(135deg, #7c3aed, #2563eb);
+  color: #fff;
+  border-radius: 50%;
+  width: 3rem;
+  height: 3rem;
+  font-size: 1.25rem;
+  box-shadow: var(--shadow);
+  transition: all var(--transition);
+}
+.btn-voice.listening {
+  animation: pulse-voice 1s infinite;
+  background: linear-gradient(135deg, #dc2626, #7c3aed);
+}
+@keyframes pulse-voice {
+  0%, 100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(124,58,237,0.5); }
+  50%       { transform: scale(1.05); box-shadow: 0 0 0 12px rgba(124,58,237,0); }
+}
+
+/* Cards */
+.card {
+  background: var(--color-surface);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  border: 1px solid var(--color-border);
+  overflow: hidden;
+  transition: box-shadow var(--transition), transform var(--transition);
+}
+.card:hover { box-shadow: var(--shadow-lg); }
+
+.card-product {
+  cursor: pointer;
+}
+.card-product:hover { transform: translateY(-3px); }
+.card-product img  { width: 100%; height: 200px; object-fit: cover; }
+
+/* Formulaires */
+.form-group { display: flex; flex-direction: column; gap: 0.375rem; }
+
+.form-label {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--color-muted);
+}
+
+.form-input {
+  width: 100%;
+  padding: 0.65rem 0.875rem;
+  border: 1.5px solid var(--color-border);
+  border-radius: 0.5rem;
+  background: var(--color-surface);
+  color: var(--color-text);
+  font-size: 0.875rem;
+  transition: border-color var(--transition), box-shadow var(--transition);
+}
+.form-input:focus {
+  outline: none;
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px rgba(37,99,235,0.15);
+}
+.form-input.error { border-color: var(--color-danger); }
+
+/* Badge */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.2rem 0.6rem;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+.badge-primary { background: #dbeafe; color: #1d4ed8; }
+.badge-success { background: #dcfce7; color: #15803d; }
+.badge-danger  { background: #fee2e2; color: #b91c1c; }
+.badge-warning { background: #fef3c7; color: #92400e; }
+.badge-muted   { background: var(--color-border); color: var(--color-muted); }
+
+/* Navbar */
+.navbar {
+  background: var(--color-surface);
+  border-bottom: 1px solid var(--color-border);
+  padding: 0.75rem 1.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  box-shadow: 0 1px 8px rgba(0,0,0,0.06);
+}
+
+/* Spinner */
+.spinner {
+  width: 2rem; height: 2rem;
+  border: 3px solid var(--color-border);
+  border-top-color: var(--color-primary);
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+  margin: auto;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* Modal */
+.modal-backdrop {
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,0.5);
+  backdrop-filter: blur(4px);
+  z-index: 200;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+}
+.modal {
+  background: var(--color-surface);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-lg);
+  max-width: 520px;
+  width: 100%;
+  max-height: 90vh;
+  overflow-y: auto;
+  animation: modal-in 0.2s ease;
+}
+@keyframes modal-in {
+  from { opacity: 0; transform: scale(0.95) translateY(10px); }
+  to   { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+/* Indicateur vocal */
+.voice-indicator {
+  position: fixed;
+  bottom: 2rem;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(37,99,235,0.95);
+  color: #fff;
+  padding: 0.75rem 1.5rem;
+  border-radius: 999px;
+  font-size: 0.875rem;
+  font-weight: 600;
+  display: none;
+  align-items: center;
+  gap: 0.5rem;
+  z-index: 300;
+  box-shadow: var(--shadow-lg);
+}
+.voice-indicator.active { display: flex; }
+.voice-indicator .dot {
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  background: #fff;
+  animation: blink 1s infinite;
+}
+@keyframes blink { 0%,100% { opacity: 1; } 50% { opacity: 0.3; } }
+
+/* ─── MODE HAUTE VISIBILITÉ ─────────────────────────────────────────────── */
+.mode-hv {
+  font-size: 1.15rem !important;
+}
+.mode-hv .btn {
+  padding: 0.9rem 1.75rem;
+  font-size: 1rem;
+}
+.mode-hv .card-product img { height: 240px; }
+.mode-hv .form-input {
+  padding: 0.9rem 1rem;
+  font-size: 1rem;
+}
+.mode-hv body {
+  background: #000 !important;
+  color: #fff !important;
+}
+.mode-hv .card {
+  background: #111 !important;
+  border: 2px solid #fff !important;
+}
+.mode-hv .btn-primary {
+  background: #fff !important;
+  color: #000 !important;
+  font-weight: 800;
+}
+.mode-hv a { color: #facc15 !important; text-decoration: underline; }
+
+/* ─── MODE VOCAL ────────────────────────────────────────────────────────── */
+.mode-vocal .btn-voice {
+  width: 4rem; height: 4rem;
+  font-size: 1.5rem;
+  position: fixed;
+  bottom: 5rem; right: 1.5rem;
+}
+.mode-vocal .voice-fab { display: flex !important; }
+
+/* ─── STATUTS COMMANDES ─────────────────────────────────────────────────── */
+.status-RECEIVED    { background:#dbeafe; color:#1d4ed8; }
+.status-PREPARING   { background:#fef3c7; color:#92400e; }
+.status-SHIPPED     { background:#ede9fe; color:#5b21b6; }
+.status-IN_DELIVERY { background:#cffafe; color:#0e7490; }
+.status-DELIVERED   { background:#dcfce7; color:#15803d; }
+.status-CANCELLED   { background:#fee2e2; color:#b91c1c; }
+.status-REFUNDED    { background:#f1f5f9; color:#475569; }
+
+/* ─── Responsive ────────────────────────────────────────────────────────── */
+@media (max-width: 640px) {
+  .navbar { padding: 0.5rem 1rem; }
+  .modal  { margin: 0.5rem; }
+}

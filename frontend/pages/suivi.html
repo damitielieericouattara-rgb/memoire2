@@ -1,0 +1,349 @@
+<!-- Fichier: /frontend/pages/suivi.html -->
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Suivi en temps réel — SneakX</title>
+    <link rel="stylesheet" href="../assets/css/design-system.css">
+    <link rel="stylesheet" href="../assets/css/accessibility.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+    <style>
+        body { font-family: 'Barlow', sans-serif; }
+        .container { max-width: 1000px; margin: 0 auto; padding: 100px 60px 60px; }
+        .page-title { font-family: 'Barlow Condensed', sans-serif; font-size: 48px; font-weight: 900; text-transform: uppercase; letter-spacing: -2px; margin-bottom: 24px; }
+        .page-title span { color: var(--orange); }
+        
+        /* Main layout */
+        .tracking-grid { display: grid; grid-template-columns: 1fr 340px; gap: 24px; }
+
+        /* Map */
+        .map-card { background: var(--bg3); border: 1px solid var(--border); border-radius: 16px; overflow: hidden; }
+        .map-header { padding: 16px 20px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; }
+        .map-title { font-family: 'Barlow Condensed', sans-serif; font-size: 16px; font-weight: 800; text-transform: uppercase; display: flex; align-items: center; gap: 8px; }
+        .map-title i { color: var(--orange); }
+        .live-badge { background: rgba(239,68,68,.15); border: 1px solid rgba(239,68,68,.3); color: #ef4444; padding: 3px 10px; border-radius: 20px; font-size: 10px; font-weight: 800; letter-spacing: 1px; display: flex; align-items: center; gap: 6px; }
+        .live-dot { width: 6px; height: 6px; border-radius: 50%; background: #ef4444; animation: pulse-dot 1s ease infinite; }
+        @keyframes pulse-dot { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:.5;transform:scale(.7)} }
+        #deliveryMap { height: 400px; background: var(--bg4); }
+        .map-unavailable { height: 400px; display: flex; flex-direction: column; align-items: center; justify-content: center; color: var(--text2); gap: 12px; background: var(--bg4); }
+        .map-unavailable i { font-size: 48px; color: var(--text3); }
+
+        /* Driver info */
+        .driver-card { background: linear-gradient(135deg, rgba(255,92,0,.08), transparent); border: 1px solid var(--orange-border); border-radius: 12px; padding: 18px 20px; margin-top: 14px; display: flex; align-items: center; gap: 16px; }
+        .driver-avatar { width: 52px; height: 52px; border-radius: 50%; background: var(--orange-dim); border: 2px solid var(--orange); display: flex; align-items: center; justify-content: center; font-size: 20px; color: var(--orange); flex-shrink: 0; }
+        .driver-name { font-weight: 700; font-size: 15px; color: var(--text); }
+        .driver-rating { color: #f59e0b; font-size: 12px; margin-top: 2px; }
+        .driver-phone { background: var(--orange); color: #fff; border: none; border-radius: 8px; padding: 8px 16px; font-size: 12px; font-weight: 700; cursor: pointer; transition: all .2s; margin-left: auto; }
+        .driver-phone:hover { opacity: .9; }
+
+        /* Right panel */
+        .right-panel { display: flex; flex-direction: column; gap: 16px; }
+
+        /* Order info */
+        .info-card { background: var(--bg3); border: 1px solid var(--border); border-radius: 16px; padding: 20px; }
+        .info-title { font-family: 'Barlow Condensed', sans-serif; font-size: 16px; font-weight: 800; text-transform: uppercase; margin-bottom: 14px; display: flex; align-items: center; gap: 8px; color: var(--text); }
+        .info-title i { color: var(--orange); }
+        .info-row { display: flex; justify-content: space-between; font-size: 13px; margin-bottom: 10px; }
+        .info-label { color: var(--text2); }
+        .info-val { font-weight: 700; color: var(--text); text-align: right; max-width: 180px; }
+        
+        /* Status badge */
+        .status-badge { padding: 8px 16px; border-radius: 20px; font-size: 11px; font-weight: 800; letter-spacing: .8px; text-transform: uppercase; display: inline-flex; align-items: center; gap: 7px; }
+        .s-RECEIVED { background: rgba(245,158,11,.15); color: #f59e0b; }
+        .s-PREPARING { background: rgba(139,92,246,.15); color: #8b5cf6; }
+        .s-SHIPPED, .s-IN_DELIVERY { background: rgba(59,130,246,.15); color: #3b82f6; }
+        .s-DELIVERED { background: rgba(16,185,129,.15); color: #10b981; }
+        .s-CANCELLED { background: rgba(239,68,68,.15); color: #ef4444; }
+
+        /* Timeline */
+        .timeline { padding-left: 0; list-style: none; }
+        .tl-item { position: relative; padding: 0 0 20px 36px; }
+        .tl-item::before { content: ''; position: absolute; left: 11px; top: 20px; bottom: 0; width: 2px; background: var(--border2); }
+        .tl-item:last-child::before { display: none; }
+        .tl-dot { position: absolute; left: 4px; top: 4px; width: 16px; height: 16px; border-radius: 50%; background: var(--border2); border: 2px solid var(--bg3); }
+        .tl-dot.done { background: var(--success); border-color: var(--success); }
+        .tl-dot.active { background: var(--orange); border-color: var(--orange); box-shadow: 0 0 0 4px rgba(255,92,0,.15); }
+        .tl-label { font-size: 13px; font-weight: 700; color: var(--text3); }
+        .tl-label.done { color: var(--text); }
+        .tl-label.active { color: var(--orange); }
+        .tl-time { font-size: 11px; color: var(--text3); margin-top: 3px; }
+
+        /* ETA */
+        .eta-banner { background: linear-gradient(135deg, var(--orange-dim), transparent); border: 1px solid var(--orange-border); border-radius: 12px; padding: 16px 20px; display: flex; align-items: center; gap: 16px; }
+        .eta-time { font-family: 'Barlow Condensed', sans-serif; font-size: 36px; font-weight: 900; color: var(--orange); line-height: 1; }
+        .eta-label { font-size: 11px; color: var(--text2); text-transform: uppercase; letter-spacing: 1px; margin-top: 4px; }
+
+        /* No order state */
+        .no-order { text-align: center; padding: 80px 20px; }
+        .no-order i { font-size: 64px; color: var(--text3); display: block; margin-bottom: 20px; }
+        .no-order h2 { font-family: 'Barlow Condensed', sans-serif; font-size: 28px; font-weight: 900; text-transform: uppercase; }
+        .no-order p { color: var(--text2); margin-top: 8px; }
+
+        @media(max-width:900px){ .container{padding:80px 16px 40px} .tracking-grid{grid-template-columns:1fr} }
+    </style>
+</head>
+<body>
+    <div id="sx-header-placeholder"></div>
+    <div class="container">
+        <div class="page-title">Suivi <span>en direct</span></div>
+        <div id="trackingRoot">
+            <div style="display:flex;justify-content:center;padding:60px"><div class="sx-spinner"></div></div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { init, showToast } from '../assets/js/modules/sx-shared.js';
+        import { OrderSim } from '../assets/js/modules/sim-engine.js';
+        init('suivi');
+
+        const fmt = v => new Intl.NumberFormat('fr-FR').format(v);
+        const STATUS_LABELS = {
+            RECEIVED: 'Commande reçue',
+            PREPARING: 'En préparation',
+            SHIPPED: 'Expédiée',
+            IN_DELIVERY: 'En livraison',
+            DELIVERED: 'Livrée',
+            CANCELLED: 'Annulée'
+        };
+
+        // Get order id from URL
+        const params = new URLSearchParams(window.location.search);
+        const orderId = params.get('id');
+
+        // Leaflet map
+        let map = null, driverMarker = null, warehouseMarker = null, destinMarker = null, routeLine = null;
+
+        function initMap(order) {
+            const t = order.tracking;
+            if (!t) return;
+
+            // Decide center
+            const center = t.driver ? [t.driver.lat, t.driver.lng] : [5.3484, -4.0232];
+
+            map = L.map('deliveryMap', { zoomControl: true }).setView(center, 13);
+
+            // Dark tile layer
+            L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+                attribution: '© OpenStreetMap contributors © CartoDB',
+                maxZoom: 19
+            }).addTo(map);
+
+            // Warehouse marker
+            const warehouseIcon = L.divIcon({
+                html: `<div style="background:#FF5C00;width:36px;height:36px;border-radius:50% 50% 50% 0;transform:rotate(-45deg);border:3px solid #fff;box-shadow:0 3px 12px rgba(0,0,0,.5)"><div style="transform:rotate(45deg);display:flex;align-items:center;justify-content:center;height:100%;font-size:14px">🏭</div></div>`,
+                iconSize: [36, 36], iconAnchor: [18, 36], className: ''
+            });
+            warehouseMarker = L.marker([5.3484, -4.0232], { icon: warehouseIcon })
+                .addTo(map)
+                .bindPopup('<b>Entrepôt SneakX</b><br>Plateau, Abidjan');
+
+            // Destination marker
+            if (t.deliveryZone) {
+                const destIcon = L.divIcon({
+                    html: `<div style="background:#10b981;width:36px;height:36px;border-radius:50% 50% 50% 0;transform:rotate(-45deg);border:3px solid #fff;box-shadow:0 3px 12px rgba(0,0,0,.5)"><div style="transform:rotate(45deg);display:flex;align-items:center;justify-content:center;height:100%;font-size:14px">🏠</div></div>`,
+                    iconSize: [36, 36], iconAnchor: [18, 36], className: ''
+                });
+                destinMarker = L.marker([t.deliveryZone.lat, t.deliveryZone.lng], { icon: destIcon })
+                    .addTo(map)
+                    .bindPopup(`<b>Adresse de livraison</b><br>${t.deliveryZone.name}, Abidjan`);
+            }
+
+            // Draw route
+            if (t.route && t.route.length) {
+                routeLine = L.polyline(t.route.map(p => [p.lat, p.lng]), {
+                    color: '#FF5C00', weight: 3, opacity: .5, dashArray: '6 8'
+                }).addTo(map);
+            }
+
+            // Driver marker (if in delivery)
+            if (t.driver) {
+                updateDriverMarker(t.driver);
+            }
+        }
+
+        function updateDriverMarker(driver) {
+            const driverIcon = L.divIcon({
+                html: `<div style="background:#3b82f6;width:44px;height:44px;border-radius:50%;border:3px solid #fff;box-shadow:0 4px 16px rgba(59,130,246,.6);display:flex;align-items:center;justify-content:center;font-size:20px">🛵</div>`,
+                iconSize: [44, 44], iconAnchor: [22, 22], className: ''
+            });
+            if (driverMarker) {
+                driverMarker.setLatLng([driver.lat, driver.lng]);
+            } else {
+                driverMarker = L.marker([driver.lat, driver.lng], { icon: driverIcon })
+                    .addTo(map)
+                    .bindPopup(`<b>${driver.name}</b><br>⭐ ${driver.rating}`);
+            }
+        }
+
+        function render() {
+            const root = document.getElementById('trackingRoot');
+
+            if (!orderId) {
+                // Show all orders if no ID
+                const orders = OrderSim.getAll();
+                if (!orders.length) {
+                    root.innerHTML = `<div class="no-order">
+                        <i class="fas fa-box-open"></i>
+                        <h2>Aucune commande</h2>
+                        <p>Vous n'avez pas encore passé de commande.</p>
+                        <a href="catalogue.html" class="sx-btn sx-btn-orange" style="display:inline-flex;margin-top:20px"><i class="fas fa-shopping-bag"></i> Voir le catalogue</a>
+                    </div>`;
+                    return;
+                }
+                root.innerHTML = `
+                    <div style="background:var(--bg3);border:1px solid var(--border);border-radius:16px;padding:24px;margin-bottom:20px">
+                        <div style="font-family:'Barlow Condensed',sans-serif;font-size:20px;font-weight:800;text-transform:uppercase;margin-bottom:16px">Sélectionner une commande</div>
+                        ${orders.map(o => `
+                        <div style="display:flex;align-items:center;justify-content:space-between;padding:14px;border:1px solid var(--border);border-radius:10px;margin-bottom:8px;cursor:pointer;transition:border-color .2s" 
+                             onclick="window.location.href='suivi.html?id=${o.id}'" 
+                             onmouseover="this.style.borderColor='var(--orange-border)'" 
+                             onmouseout="this.style.borderColor='var(--border)'">
+                            <div>
+                                <div style="font-weight:700;font-size:14px">${o.order_number}</div>
+                                <div style="color:var(--text2);font-size:12px">${new Date(o.created_at).toLocaleDateString('fr-FR')}</div>
+                            </div>
+                            <div style="display:flex;align-items:center;gap:12px">
+                                <span class="status-badge s-${o.status}">${STATUS_LABELS[o.status] || o.status}</span>
+                                <i class="fas fa-chevron-right" style="color:var(--text3)"></i>
+                            </div>
+                        </div>`).join('')}
+                    </div>`;
+                return;
+            }
+
+            const order = OrderSim.getById(orderId);
+            if (!order) {
+                root.innerHTML = `<div class="no-order">
+                    <i class="fas fa-search"></i>
+                    <h2>Commande introuvable</h2>
+                    <p>Identifiant : ${orderId}</p>
+                    <a href="commandes.html" class="sx-btn sx-btn-orange" style="display:inline-flex;margin-top:20px"><i class="fas fa-box"></i> Mes commandes</a>
+                </div>`;
+                return;
+            }
+
+            const t = order.tracking || {};
+            const hasDriver = order.status === 'IN_DELIVERY' && t.driver;
+            const isDelivered = order.status === 'DELIVERED';
+            const isCancelled = order.status === 'CANCELLED';
+            const canTrack = ['SHIPPED', 'IN_DELIVERY'].includes(order.status);
+
+            // ETA calculation
+            const etaLabel = isDelivered ? 'Livré !' : isCancelled ? 'Annulée' : hasDriver ? '~20 min' : 'Sous 2 jours';
+
+            // Build timeline from tracking history
+            const FLOW = ['RECEIVED', 'PREPARING', 'SHIPPED', 'IN_DELIVERY', 'DELIVERED'];
+            const currentIdx = FLOW.indexOf(order.status);
+            const timeline = FLOW.filter(s => s !== 'DELIVERED' || isDelivered).map((s, i) => {
+                const historyItem = (t.history || []).find(h => h.status === s);
+                const done = i < currentIdx || (isDelivered && s === 'DELIVERED');
+                const active = i === currentIdx && !isDelivered;
+                return { status: s, label: STATUS_LABELS[s] || s, done, active, time: historyItem?.time };
+            });
+
+            root.innerHTML = `
+            <div class="tracking-grid">
+                <!-- Left: Map -->
+                <div>
+                    <div class="map-card">
+                        <div class="map-header">
+                            <div class="map-title"><i class="fas fa-map-marked-alt"></i> Carte de suivi</div>
+                            ${canTrack || hasDriver ? `<div class="live-badge"><div class="live-dot"></div> EN DIRECT</div>` : ''}
+                        </div>
+                        ${(canTrack || isDelivered) ? `<div id="deliveryMap"></div>` : `<div class="map-unavailable">
+                            <i class="fas fa-map-marker-alt"></i>
+                            <div style="font-family:'Barlow Condensed',sans-serif;font-size:18px;font-weight:800;text-transform:uppercase">
+                                ${isCancelled ? 'Commande annulée' : 'Suivi disponible lors de l\'expédition'}
+                            </div>
+                            <div style="font-size:13px">Statut actuel : ${STATUS_LABELS[order.status] || order.status}</div>
+                        </div>`}
+                    </div>
+
+                    ${hasDriver ? `
+                    <div class="driver-card">
+                        <div class="driver-avatar"><i class="fas fa-motorcycle"></i></div>
+                        <div>
+                            <div class="driver-name">${t.driver.name}</div>
+                            <div class="driver-rating">⭐ ${t.driver.rating} · Livreur certifié</div>
+                        </div>
+                        <button class="driver-phone" onclick="showToast('Appel simulé : ${t.driver.phone}', 'info')">
+                            <i class="fas fa-phone"></i> Appeler
+                        </button>
+                    </div>` : ''}
+                </div>
+
+                <!-- Right: Info -->
+                <div class="right-panel">
+                    <!-- ETA -->
+                    <div class="eta-banner">
+                        <div>
+                            <div class="eta-time">${etaLabel}</div>
+                            <div class="eta-label">${isDelivered ? 'Livraison terminée' : isCancelled ? '' : 'Délai estimé'}</div>
+                        </div>
+                        <div style="margin-left:auto">
+                            <span class="status-badge s-${order.status}">${STATUS_LABELS[order.status] || order.status}</span>
+                        </div>
+                    </div>
+
+                    <!-- Order info -->
+                    <div class="info-card">
+                        <div class="info-title"><i class="fas fa-box"></i> Commande</div>
+                        <div class="info-row"><span class="info-label">Numéro</span><span class="info-val">${order.order_number}</span></div>
+                        <div class="info-row"><span class="info-label">Date</span><span class="info-val">${new Date(order.created_at).toLocaleDateString('fr-FR')}</span></div>
+                        <div class="info-row"><span class="info-label">Articles</span><span class="info-val">${(order.items||[]).length} article${(order.items||[]).length > 1 ? 's' : ''}</span></div>
+                        <div class="info-row"><span class="info-label">Total</span><span class="info-val" style="color:var(--orange)">${fmt(order.amount_ttc)} XOF</span></div>
+                        ${order.address ? `<div class="info-row"><span class="info-label">Livraison</span><span class="info-val">${order.address.zone}, ${order.address.address}</span></div>` : ''}
+                    </div>
+
+                    <!-- Timeline -->
+                    <div class="info-card">
+                        <div class="info-title"><i class="fas fa-route"></i> Progression</div>
+                        <ul class="timeline">
+                            ${timeline.map(step => `
+                            <li class="tl-item">
+                                <div class="tl-dot ${step.active ? 'active' : step.done ? 'done' : ''}"></div>
+                                <div class="tl-label ${step.active ? 'active' : step.done ? 'done' : ''}">${step.label}</div>
+                                ${step.time ? `<div class="tl-time">${new Date(step.time).toLocaleTimeString('fr-FR', {hour:'2-digit',minute:'2-digit'})}</div>` : ''}
+                            </li>`).join('')}
+                        </ul>
+                    </div>
+
+                    <div style="display:flex;gap:8px">
+                        <a href="commandes.html" class="sx-btn sx-btn-ghost" style="flex:1;justify-content:center"><i class="fas fa-arrow-left"></i> Retour</a>
+                        ${!isCancelled && !isDelivered ? `<button class="sx-btn sx-btn-orange" style="flex:1;justify-content:center" onclick="window.location.reload()"><i class="fas fa-sync"></i> Actualiser</button>` : ''}
+                    </div>
+                </div>
+            </div>`;
+
+            // Init map after DOM is ready
+            if (canTrack || isDelivered) {
+                setTimeout(() => {
+                    initMap(order);
+                    if (hasDriver) startDriverAnimation(order.id);
+                }, 100);
+            }
+        }
+
+        function startDriverAnimation(id) {
+            let counter = 0;
+            const interval = setInterval(() => {
+                const driver = OrderSim.advanceDriver(id);
+                if (!driver || counter > 100) { clearInterval(interval); return; }
+                updateDriverMarker(driver);
+                map.panTo([driver.lat, driver.lng], { animate: true, duration: 1 });
+                counter++;
+            }, 3000);
+        }
+
+        // Listen for live updates
+        window.addEventListener('sx-order-update', (e) => {
+            if (!orderId || e.detail.orderId === orderId) render();
+        });
+
+        render();
+    </script>
+</body>
+</html>

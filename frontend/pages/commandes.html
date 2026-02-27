@@ -1,0 +1,251 @@
+<!-- Fichier: /frontend/pages/commandes.html -->
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mes Commandes — SneakX</title>
+    <link rel="stylesheet" href="../assets/css/design-system.css">
+    <link rel="stylesheet" href="../assets/css/accessibility.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .page-wrap { padding: 100px 60px 60px; max-width: 1100px; margin: 0 auto; }
+        .page-hero { margin-bottom: 32px; display: flex; align-items: flex-end; justify-content: space-between; flex-wrap:wrap; gap:16px; }
+        .page-title { font-family: 'Barlow Condensed', sans-serif; font-size: 52px; font-weight: 900; text-transform: uppercase; letter-spacing: -2px; line-height: 1; }
+        .page-title span { color: var(--orange); }
+        .page-sub { color: var(--text2); font-size: 14px; margin-top: 6px; }
+        .filters-bar { background: var(--bg3); border: 1px solid var(--border); border-radius: 14px; padding: 20px 24px; margin-bottom: 28px; display: flex; gap: 12px; flex-wrap: wrap; align-items: center; }
+        .filter-search { flex: 1; min-width: 200px; position: relative; }
+        .filter-search i { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: var(--text3); font-size: 13px; }
+        .filter-search input { width: 100%; background: var(--bg); border: 1px solid var(--border); border-radius: 8px; padding: 10px 12px 10px 38px; color: var(--text); font-family: 'Barlow', sans-serif; font-size: 13px; outline: none; }
+        .filter-search input:focus { border-color: var(--orange); }
+        .filter-search input::placeholder { color: var(--text3); }
+        .filter-sel { background: var(--bg); border: 1px solid var(--border); border-radius: 8px; padding: 10px 14px; color: var(--text); font-family: 'Barlow', sans-serif; font-size: 13px; outline: none; cursor: pointer; min-width: 160px; }
+        .filter-sel:focus { border-color: var(--orange); }
+        .order-card { background: var(--bg3); border: 1px solid var(--border); border-radius: 16px; margin-bottom: 16px; overflow: hidden; transition: border-color .25s, transform .2s; }
+        .order-card:hover { border-color: var(--orange-border); transform: translateY(-2px); }
+        .order-head { display: flex; align-items: center; justify-content: space-between; padding: 20px 24px; border-bottom: 1px solid var(--border); flex-wrap: wrap; gap: 12px; }
+        .order-id-wrap { display: flex; align-items: center; gap: 12px; }
+        .order-icon { width: 42px; height: 42px; background: var(--orange-dim); border-radius: 10px; display: flex; align-items: center; justify-content: center; color: var(--orange); font-size: 16px; }
+        .order-id { font-family: 'Barlow Condensed', sans-serif; font-size: 18px; font-weight: 800; }
+        .order-date { color: var(--text2); font-size: 12px; margin-top: 2px; }
+        .status-pill { padding: 5px 14px; border-radius: 20px; font-size: 10px; font-weight: 800; letter-spacing: .8px; text-transform: uppercase; }
+        .s-RECEIVED { background: rgba(245,158,11,.15); color: #f59e0b; }
+        .s-PREPARING { background: rgba(139,92,246,.15); color: #8b5cf6; }
+        .s-SHIPPED, .s-IN_DELIVERY { background: rgba(59,130,246,.15); color: #3b82f6; }
+        .s-DELIVERED { background: rgba(16,185,129,.15); color: #10b981; }
+        .s-CANCELLED { background: rgba(239,68,68,.15); color: #ef4444; }
+        .order-body { padding: 20px 24px; }
+        .progress-track { display: flex; align-items: center; margin-bottom: 16px; }
+        .prog-step { display: flex; flex-direction: column; align-items: center; gap: 5px; }
+        .prog-dot { width: 12px; height: 12px; border-radius: 50%; background: var(--border2); transition: background .3s; }
+        .prog-dot.done { background: var(--success); }
+        .prog-dot.active { background: var(--orange); box-shadow: 0 0 0 3px rgba(255,92,0,.2); }
+        .prog-line { flex: 1; height: 2px; background: var(--border2); margin: 0 4px; }
+        .prog-line.done { background: var(--success); }
+        .prog-label { font-size: 9px; color: var(--text3); text-transform: uppercase; letter-spacing: .5px; white-space: nowrap; }
+        .prog-label.active { color: var(--orange); font-weight: 700; }
+        .prog-label.done { color: var(--success); }
+        .order-items-row { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 12px; }
+        .item-thumb { width: 52px; height: 52px; border-radius: 8px; object-fit: cover; border: 1px solid var(--border); }
+        .order-foot { display: flex; align-items: center; justify-content: space-between; padding: 16px 24px; border-top: 1px solid var(--border); flex-wrap: wrap; gap: 10px; }
+        .order-total { font-family: 'Barlow Condensed', sans-serif; font-size: 24px; font-weight: 900; color: var(--orange); }
+        .order-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+        .act-btn { padding: 9px 18px; border-radius: 8px; font-size: 11px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; cursor: pointer; transition: all .2s; display: inline-flex; align-items: center; gap: 7px; }
+        .act-btn-ghost { background: transparent; border: 1px solid var(--border2); color: var(--text2); }
+        .act-btn-ghost:hover { border-color: var(--text); color: var(--text); }
+        .act-btn-primary { background: var(--orange); color: #fff; border: none; }
+        .act-btn-primary:hover { opacity:.9; }
+        .act-btn-danger { background: transparent; border: 1px solid rgba(239,68,68,.3); color: #ef4444; }
+        .act-btn-danger:hover { background: rgba(239,68,68,.1); }
+        .empty-state { text-align: center; padding: 60px 20px; }
+        .empty-state i { font-size: 52px; color: var(--text3); display: block; margin-bottom: 16px; }
+        .empty-state h3 { font-family: 'Barlow Condensed', sans-serif; font-size: 24px; font-weight: 800; text-transform: uppercase; }
+        .empty-state p { color: var(--text2); font-size: 14px; margin-top: 8px; }
+        .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,.7); display: none; align-items: center; justify-content: center; z-index: 1000; }
+        .modal-overlay.open { display: flex; }
+        .modal-box { background: var(--bg3); border: 1px solid var(--border); border-radius: 20px; padding: 32px; max-width: 440px; width: 90%; }
+        .modal-title { font-family: 'Barlow Condensed', sans-serif; font-size: 24px; font-weight: 800; text-transform: uppercase; margin-bottom: 16px; }
+        .modal-actions { display: flex; gap: 10px; margin-top: 24px; justify-content: flex-end; }
+        @media (max-width:768px) { .page-wrap{padding:80px 16px 40px} .order-foot{flex-direction:column;align-items:flex-start} }
+    </style>
+</head>
+<body>
+    <div id="sx-header-placeholder"></div>
+    <div class="page-wrap">
+        <div class="page-hero reveal">
+            <div>
+                <div class="page-title">Mes <span>Commandes</span></div>
+                <div class="page-sub" id="orderCount">Chargement...</div>
+            </div>
+            <button class="sx-btn sx-btn-orange" onclick="window.location.href='catalogue.html'">
+                <i class="fas fa-plus"></i> Nouvelle commande
+            </button>
+        </div>
+
+        <div class="filters-bar reveal">
+            <div class="filter-search">
+                <i class="fas fa-search"></i>
+                <input type="text" id="searchInput" placeholder="Rechercher par numéro...">
+            </div>
+            <select id="statusFilter" class="filter-sel">
+                <option value="">Tous les statuts</option>
+                <option value="RECEIVED">Reçue</option>
+                <option value="PREPARING">En préparation</option>
+                <option value="SHIPPED">Expédiée</option>
+                <option value="IN_DELIVERY">En livraison</option>
+                <option value="DELIVERED">Livrée</option>
+                <option value="CANCELLED">Annulée</option>
+            </select>
+        </div>
+
+        <div id="ordersList"></div>
+    </div>
+
+    <!-- Cancel Modal -->
+    <div class="modal-overlay" id="cancelModal">
+        <div class="modal-box">
+            <div class="modal-title">Annuler la commande</div>
+            <p style="color:var(--text2);font-size:14px">Commande <strong id="cancelNum" style="color:var(--text)"></strong></p>
+            <div style="margin-top:16px">
+                <label style="font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--text2);display:block;margin-bottom:8px">Raison</label>
+                <textarea id="cancelReason" class="sx-input" rows="3" placeholder="Optionnel..." style="resize:none;width:100%;background:var(--bg);border:1px solid var(--border2);border-radius:8px;padding:10px;color:var(--text);font-family:'Barlow',sans-serif"></textarea>
+            </div>
+            <div class="modal-actions">
+                <button class="act-btn act-btn-ghost" onclick="closeCancel()">Garder</button>
+                <button class="act-btn act-btn-danger" onclick="doCancel()"><i class="fas fa-times"></i> Annuler</button>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { init, showToast } from '../assets/js/modules/sx-shared.js';
+        import { OrderSim } from '../assets/js/modules/sim-engine.js';
+        init('commandes');
+
+        const SHOE_IMGS = ['https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=100&q=70','https://images.unsplash.com/photo-1608231387042-66d1773070a5?w=100&q=70','https://images.unsplash.com/photo-1600269452121-4f2416e55c28?w=100&q=70'];
+        const STATUS_MAP = {
+            RECEIVED:    { l:'Reçue',           c:'s-RECEIVED' },
+            PREPARING:   { l:'En préparation',  c:'s-PREPARING' },
+            SHIPPED:     { l:'Expédiée',        c:'s-SHIPPED' },
+            IN_DELIVERY: { l:'En livraison',    c:'s-IN_DELIVERY' },
+            DELIVERED:   { l:'Livrée',          c:'s-DELIVERED' },
+            CANCELLED:   { l:'Annulée',         c:'s-CANCELLED' },
+        };
+        const STEPS = ['RECEIVED','PREPARING','SHIPPED','IN_DELIVERY','DELIVERED'];
+        const STEP_LABELS = ['Reçue','Préparation','Expédiée','Livraison','Livrée'];
+        const fmt = v => new Intl.NumberFormat('fr-FR').format(v);
+        let cancelId = null;
+        let filters = { q: '', status: '' };
+
+        function render() {
+            const container = document.getElementById('ordersList');
+            let orders = OrderSim.getAll(filters);
+
+            document.getElementById('orderCount').textContent = `${orders.length} commande${orders.length !== 1 ? 's' : ''}`;
+
+            if (!orders.length) {
+                container.innerHTML = `<div class="empty-state">
+                    <i class="fas fa-box"></i>
+                    <h3>Aucune commande</h3>
+                    <p>${filters.q || filters.status ? 'Aucune commande ne correspond à vos critères.' : 'Vous n\'avez pas encore passé de commande.'}</p>
+                    <button class="sx-btn sx-btn-orange" style="margin-top:20px" onclick="window.location.href='catalogue.html'">
+                        <i class="fas fa-shopping-bag"></i> Voir le catalogue
+                    </button></div>`;
+                return;
+            }
+
+            container.innerHTML = orders.map(o => renderCard(o)).join('');
+        }
+
+        function renderCard(o) {
+            const st = STATUS_MAP[o.status] || { l: o.status, c: 's-RECEIVED' };
+            const stepIdx = STEPS.indexOf(o.status);
+            const cancelled = o.status === 'CANCELLED';
+            const canCancel = ['RECEIVED','PREPARING'].includes(o.status);
+            const canTrack = ['SHIPPED','IN_DELIVERY'].includes(o.status);
+            const amt = fmt(o.amount_ttc || 0);
+            const date = new Date(o.created_at).toLocaleDateString('fr-FR', {day:'2-digit',month:'long',year:'numeric'});
+
+            const progHtml = !cancelled && stepIdx >= 0 ? `
+                <div class="progress-track" style="margin-bottom:16px">
+                    ${STEPS.map((s,i) => {
+                        const done = i < stepIdx;
+                        const active = i === stepIdx;
+                        return (i > 0 ? `<div class="prog-line ${i <= stepIdx ? 'done':''}"></div>` : '') +
+                            `<div class="prog-step">
+                                <div class="prog-dot ${active?'active':done?'done':''}"></div>
+                                <span class="prog-label ${active?'active':done?'done':''}">${STEP_LABELS[i]}</span>
+                            </div>`;
+                    }).join('')}
+                </div>` : '';
+
+            const items = o.items || [];
+            const itemsHtml = items.length > 0 ? `<div class="order-items-row">
+                ${items.slice(0,4).map((it,i) => `<img class="item-thumb" src="${it.product_image || SHOE_IMGS[i%3]}" alt="${it.product_name}" onerror="this.src='${SHOE_IMGS[0]}'">` ).join('')}
+                ${items.length > 4 ? `<div style="background:var(--bg4);border:1px solid var(--border);border-radius:20px;padding:4px 12px;font-size:11px;color:var(--text2);display:flex;align-items:center">+${items.length-4}</div>` : ''}
+            </div>` : '';
+
+            return `<div class="order-card">
+                <div class="order-head">
+                    <div class="order-id-wrap">
+                        <div class="order-icon"><i class="fas fa-box"></i></div>
+                        <div>
+                            <div class="order-id">${o.order_number}</div>
+                            <div class="order-date">${date}</div>
+                        </div>
+                    </div>
+                    <span class="status-pill ${st.c}">${st.l}</span>
+                </div>
+                <div class="order-body">
+                    ${progHtml}
+                    ${itemsHtml}
+                    ${o.address ? `<p style="font-size:12px;color:var(--text2)"><i class="fas fa-map-marker-alt" style="color:var(--orange);margin-right:5px"></i>${o.address.zone}, ${o.address.address}</p>` : ''}
+                </div>
+                <div class="order-foot">
+                    <div class="order-total">${amt} XOF</div>
+                    <div class="order-actions">
+                        ${canTrack ? `<button class="act-btn act-btn-ghost" onclick="window.location.href='suivi.html?id=${o.id}'"><i class="fas fa-map-marker-alt"></i> Suivre en direct</button>` : ''}
+                        <button class="act-btn act-btn-primary" onclick="window.location.href='suivi.html?id=${o.id}'"><i class="fas fa-eye"></i> Détails</button>
+                        ${canCancel ? `<button class="act-btn act-btn-danger" onclick="openCancel('${o.id}','${o.order_number}')"><i class="fas fa-times"></i> Annuler</button>` : ''}
+                    </div>
+                </div>
+            </div>`;
+        }
+
+        let t;
+        document.getElementById('searchInput').addEventListener('input', e => {
+            clearTimeout(t);
+            t = setTimeout(() => { filters.q = e.target.value; render(); }, 300);
+        });
+        document.getElementById('statusFilter').addEventListener('change', e => {
+            filters.status = e.target.value; render();
+        });
+
+        // Live updates when orders progress
+        window.addEventListener('sx-order-update', () => render());
+
+        window.openCancel = (id, num) => {
+            cancelId = id;
+            document.getElementById('cancelNum').textContent = '#' + num;
+            document.getElementById('cancelModal').classList.add('open');
+        };
+        window.closeCancel = () => {
+            document.getElementById('cancelModal').classList.remove('open');
+            cancelId = null;
+        };
+        window.doCancel = () => {
+            if (!cancelId) return;
+            try {
+                const reason = document.getElementById('cancelReason').value;
+                OrderSim.cancel(cancelId, reason);
+                closeCancel();
+                showToast('Commande annulée. Remboursement en cours si applicable.', 'success');
+                render();
+            } catch(e) { showToast(e.message || 'Erreur', 'error'); }
+        };
+
+        render();
+    </script>
+</body>
+</html>

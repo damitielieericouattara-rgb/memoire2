@@ -1,0 +1,48 @@
+// Fichier: /frontend/assets/js/modules/auth.js
+
+class Auth {
+    static setTokens(accessToken, refreshToken) {
+        localStorage.setItem('access_token', accessToken);
+        localStorage.setItem('refresh_token', refreshToken);
+    }
+
+    static getAccessToken()  { return localStorage.getItem('access_token'); }
+    static getRefreshToken() { return localStorage.getItem('refresh_token'); }
+
+    static setUser(user) { localStorage.setItem('user', JSON.stringify(user)); }
+    static getUser() {
+        const u = localStorage.getItem('user');
+        try { return u ? JSON.parse(u) : null; } catch { return null; }
+    }
+
+    static isAuthenticated() { return !!this.getAccessToken(); }
+    static hasRole(role) {
+        const u = this.getUser();
+        return u && u.role === role;
+    }
+
+    static logout() {
+        localStorage.clear();
+        // Redirige vers la page de connexion (chemin relatif depuis /pages/)
+        window.location.href = 'connexion.html';
+    }
+
+    // Protège une page : redirige si non connecté
+    static requireAuth() {
+        if (!this.isAuthenticated()) {
+            window.location.href = 'connexion.html';
+            return false;
+        }
+        return true;
+    }
+
+    static requireAdmin() {
+        if (!this.isAuthenticated() || !this.hasRole('ADMIN')) {
+            window.location.href = 'dashboard.html';
+            return false;
+        }
+        return true;
+    }
+}
+
+export default Auth;

@@ -1,0 +1,8 @@
+# /.htaccess (racine du projet)
+Options -Indexes
+RewriteEngine On
+
+# Redirige /api/* vers backend/index.php
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule ^api/(.*)$ backend/index.php [QSA,L]
