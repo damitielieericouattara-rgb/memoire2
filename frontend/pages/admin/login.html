@@ -51,11 +51,11 @@
 
         <div class="form-group">
             <label class="form-label">Email administrateur</label>
-            <input type="email" class="form-input" id="email" placeholder="admin@sneakx.com" value="admin@sneakx.com">
+            <input type="email" class="form-input" id="email" placeholder="admin@ecommerce.com" value="admin@ecommerce.com">
         </div>
         <div class="form-group">
             <label class="form-label">Mot de passe</label>
-            <input type="password" class="form-input" id="password" placeholder="••••••••" value="Admin123!" onkeydown="if(event.key==='Enter') login()">
+            <input type="password" class="form-input" id="password" placeholder="••••••••" value="Motdepasse123" onkeydown="if(event.key==='Enter') login()">
         </div>
 
         <button class="btn-login" id="loginBtn" onclick="login()">
@@ -73,42 +73,44 @@
 
         <div class="hint-box">
             <div style="margin-bottom:6px"><i class="fas fa-info-circle" style="color:var(--orange);margin-right:5px"></i><strong>Identifiants démo</strong></div>
-            Email : <span class="cred">admin@sneakx.com</span><br>
-            Mot de passe : <span class="cred">Admin123!</span>
+            Email : <span class="cred">admin@ecommerce.com</span><br>
+            Mot de passe : <span class="cred">Motdepasse123</span>
         </div>
     </div>
 
-    <script>
-        const ADMIN_EMAIL = 'admin@sneakx.com';
-        const ADMIN_PASSWORD = 'Admin123!';
+    <script type="module">
+        import API from '../../assets/js/modules/api.js';
+        import Auth from '../../assets/js/modules/auth.js';
 
-        // Fake JWT token payload for admin
+        const ADMIN_HINT_EMAIL    = 'admin@ecommerce.com';
+        const ADMIN_HINT_PASSWORD = 'Motdepasse123';
+
+        // Session "fake" pour mode démo hors-ligne (aucun appel backend)
         function makeFakeToken(user) {
             const header = btoa(JSON.stringify({ alg: 'HS256', typ: 'JWT' }));
             const payload = btoa(JSON.stringify({
                 sub: user.id,
                 email: user.email,
                 role: user.role,
-                exp: Math.floor(Date.now() / 1000) + 86400 * 7 // 7 days
+                exp: Math.floor(Date.now() / 1000) + 86400 * 7
             }));
             const sig = btoa('sneakx-demo-signature');
             return `${header}.${payload}.${sig}`;
         }
 
-        function injectAdminSession() {
+        function injectAdminSessionDemo() {
             const adminUser = {
                 id: 1,
                 name: 'Admin SneakX',
                 first_name: 'Admin',
-                email: ADMIN_EMAIL,
+                email: ADMIN_HINT_EMAIL,
                 role: 'ADMIN',
                 status: 'ACTIVE',
                 avatar: null
             };
-            const token = makeFakeToken(adminUser);
-            localStorage.setItem('access_token', token);
-            localStorage.setItem('refresh_token', token);
-            localStorage.setItem('user', JSON.stringify(adminUser));
+            const fakeToken = makeFakeToken(adminUser);
+            Auth.setTokens(fakeToken, fakeToken);
+            Auth.setUser(adminUser);
         }
 
         function showError(msg) {
@@ -117,7 +119,7 @@
             el.style.display = 'block';
         }
 
-        function login() {
+        async function doLogin() {
             const email = document.getElementById('email').value.trim();
             const password = document.getElementById('password').value;
             const btn = document.getElementById('loginBtn');
@@ -129,42 +131,56 @@
                 return;
             }
 
-            // Simulate loading
             btn.disabled = true;
-            btn.innerHTML = '<span class="spinner"></span>Vérification...';
+            btn.innerHTML = '<span class="spinner"></span>Connexion...';
 
-            setTimeout(() => {
-                if (email === ADMIN_EMAIL && password === ADMIN_PASSWORD) {
-                    injectAdminSession();
-                    btn.innerHTML = '<i class="fas fa-check"></i> Accès accordé !';
-                    btn.style.background = '#10b981';
-                    setTimeout(() => {
-                        window.location.href = 'commandes.html';
-                    }, 600);
-                } else {
+            try {
+                const res = await API.post('/api/auth/login', { email, password });
+                if (!res.success) throw new Error(res.message || 'Erreur de connexion');
+
+                const user = res.data.user;
+                if (!user || user.role !== 'ADMIN') {
                     btn.disabled = false;
                     btn.innerHTML = '<i class="fas fa-lock"></i> Accéder au panneau admin';
-                    showError('Email ou mot de passe incorrect. Utilisez les identifiants démo.');
+                    showError('Ce compte n\'a pas les droits administrateur.');
+                    return;
                 }
-            }, 1200);
-        }
 
-        function quickAccess() {
-            injectAdminSession();
-            window.location.href = 'commandes.html';
-        }
+                Auth.setTokens(res.data.access_token, res.data.refresh_token);
+                Auth.setUser(user);
 
-        // If already logged in as admin, redirect
-        try {
-            const user = JSON.parse(localStorage.getItem('user') || 'null');
-            const token = localStorage.getItem('access_token');
-            if (user && user.role === 'ADMIN' && token) {
-                const payload = JSON.parse(atob(token.split('.')[1]));
-                if (payload.exp * 1000 > Date.now()) {
-                    window.location.href = 'commandes.html';
+                btn.innerHTML = '<i class="fas fa-check"></i> Accès accordé !';
+                btn.style.background = '#10b981';
+                setTimeout(() => {
+                    window.location.href = 'dashboard.html';
+                }, 600);
+            } catch (e) {
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fas fa-lock"></i> Accéder au panneau admin';
+                // Si le backend est hors ligne, on laisse le mode démo possible
+                if (e.message && e.message.includes('Impossible de joindre le serveur')) {
+                    showError("Serveur injoignable. Utilisez le bouton 'Accès rapide (mode démo)' pour tester l'interface.");
+                } else {
+                    showError(e.message || 'Email ou mot de passe incorrect.');
                 }
             }
-        } catch(e) {}
+        }
+
+        function quickAccessDemo() {
+            injectAdminSessionDemo();
+            window.location.href = 'dashboard.html';
+        }
+
+        // Expose les fonctions pour les attributs onclick
+        window.login = doLogin;
+        window.quickAccess = quickAccessDemo;
+
+        // Si déjà connecté en admin, on redirige
+        try {
+            if (Auth.isAuthenticated() && Auth.hasRole('ADMIN')) {
+                window.location.href = 'dashboard.html';
+            }
+        } catch (e) {}
     </script>
 </body>
 </html>

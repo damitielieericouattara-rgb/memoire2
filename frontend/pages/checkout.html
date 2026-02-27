@@ -1,33 +1,559 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-  <meta charset="UTF-8"/>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Finaliser la commande — E-Commerce Intelligent</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <link rel="stylesheet" href="../assets/css/style.css"/>
-  <script>tailwind.config = { darkMode: 'class' }</script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Finaliser la commande — SneakX</title>
+    <link rel="stylesheet" href="../assets/css/design-system.css">
+    <link rel="stylesheet" href="../assets/css/accessibility.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
-<body class="bg-slate-50 dark:bg-slate-900 min-h-screen">
+<body data-theme="dark">
+    <nav class="navbar">
+        <a href="panier.html" class="nav-link">
+            <i class="fas fa-arrow-left"></i>
+            ← Retour au panier
+        </a>
+        <h1 class="nav-title">✅ Finaliser la commande</h1>
+        <button id="btn-theme" class="btn btn-ghost">🌙</button>
+    </nav>
 
-<nav class="navbar">
-  <a href="dashboard.html" class="flex items-center gap-2 font-bold text-slate-800 dark:text-white">
-    ← 🛍️ Retour à la boutique
-  </a>
-  <h2 class="font-semibold text-slate-700 dark:text-slate-200">✅ Finaliser la commande</h2>
-  <button id="btn-theme" class="btn btn-ghost text-xl">🌙</button>
-</nav>
+    <main class="container">
+        <div class="checkout-grid">
+            
+            <!-- ─── Formulaire ─────────────────────────────────────────────────── -->
+            <div class="checkout-form">
+                
+                <!-- Adresse de livraison -->
+                <div class="form-section">
+                    <h2 class="section-title">
+                        <i class="fas fa-map-marker-alt"></i>
+                        Adresse de livraison
+                    </h2>
+                    
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label class="form-label">Prénom</label>
+                            <input type="text" class="form-input" placeholder="Jean" value="Jean">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label class="form-label">Nom</label>
+                            <input type="text" class="form-input" placeholder="Dupont" value="Martin">
+                        </div>
+                        
+                        <div class="form-group full-width">
+                            <label class="form-label">Adresse</label>
+                            <input type="text" class="form-input" placeholder="123 rue de la République" value="123 rue de la République">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label class="form-label">Ville</label>
+                            <input type="text" class="form-input" placeholder="Paris" value="Abidjan">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label class="form-label">Code postal</label>
+                            <input type="text" class="form-input" placeholder="75001" value="00225">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label class="form-label">Téléphone</label>
+                            <input type="tel" class="form-input" placeholder="+225 00 00 00 00" value="+225 07 08 09 10">
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Méthode de paiement -->
+                <div class="form-section">
+                    <h2 class="section-title">
+                        <i class="fas fa-credit-card"></i>
+                        Méthode de paiement
+                    </h2>
+                    
+                    <div class="payment-methods">
+                        <label class="payment-option">
+                            <input type="radio" name="payment" value="wallet" checked>
+                            <div class="payment-card">
+                                <i class="fas fa-wallet"></i>
+                                <div>
+                                    <strong>Wallet SneakX</strong>
+                                    <span>Solde: 25,000 FCFA</span>
+                                </div>
+                            </div>
+                        </label>
+                        
+                        <label class="payment-option">
+                            <input type="radio" name="payment" value="card">
+                            <div class="payment-card">
+                                <i class="fas fa-credit-card"></i>
+                                <div>
+                                    <strong>Carte bancaire</strong>
+                                    <span>Visa, Mastercard</span>
+                                </div>
+                            </div>
+                        </label>
+                        
+                        <label class="payment-option">
+                            <input type="radio" name="payment" value="mobile">
+                            <div class="payment-card">
+                                <i class="fas fa-mobile-alt"></i>
+                                <div>
+                                    <strong>Mobile Money</strong>
+                                    <span>Orange, MTN, Moov</span>
+                                </div>
+                            </div>
+                        </label>
+                        
+                        <label class="payment-option">
+                            <input type="radio" name="payment" value="cod">
+                            <div class="payment-card">
+                                <i class="fas fa-hand-holding-usd"></i>
+                                <div>
+                                    <strong>Paiement à la livraison</strong>
+                                    <span>À la réception</span>
+                                </div>
+                            </div>
+                        </label>
+                    </div>
+                </div>
+                
+                <!-- Options de livraison -->
+                <div class="form-section">
+                    <h2 class="section-title">
+                        <i class="fas fa-truck"></i>
+                        Options de livraison
+                    </h2>
+                    
+                    <div class="delivery-options">
+                        <label class="delivery-option">
+                            <input type="radio" name="delivery" value="standard" checked>
+                            <div class="delivery-card">
+                                <div class="delivery-header">
+                                    <strong>Livraison Standard</strong>
+                                    <span class="delivery-price">2,000 FCFA</span>
+                                </div>
+                                <span class="delivery-time">3-5 jours ouvrables</span>
+                            </div>
+                        </label>
+                        
+                        <label class="delivery-option">
+                            <input type="radio" name="delivery" value="express">
+                            <div class="delivery-card">
+                                <div class="delivery-header">
+                                    <strong>Livraison Express</strong>
+                                    <span class="delivery-price">5,000 FCFA</span>
+                                </div>
+                                <span class="delivery-time">24-48h</span>
+                            </div>
+                        </label>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- ─── Récapitulatif ───────────────────────────────────────────── -->
+            <div class="checkout-summary">
+                <div class="summary-card">
+                    <h2 class="summary-title">
+                        <i class="fas fa-shopping-bag"></i>
+                        Récapitulatif
+                    </h2>
+                    
+                    <div class="summary-items">
+                        <!-- Article 1 -->
+                        <div class="summary-item">
+                            <img src="https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=150&q=80" alt="Nike Air Max" class="item-thumb">
+                            <div class="item-details">
+                                <div class="item-name">Nike Air Max 270</div>
+                                <div class="item-variant">Noir/Blanc - Taille 42</div>
+                            </div>
+                            <div class="item-quantity">x1</div>
+                            <div class="item-price">45,000 FCFA</div>
+                        </div>
+                        
+                        <!-- Article 2 -->
+                        <div class="summary-item">
+                            <img src="https://images.unsplash.com/photo-1556905055-8f358a7a797e?w=150&q=80" alt="Adidas Ultra" class="item-thumb">
+                            <div class="item-details">
+                                <div class="item-name">Adidas Ultra Boost</div>
+                                <div class="item-variant">Bleu marine - Taille 43</div>
+                            </div>
+                            <div class="item-quantity">x1</div>
+                            <div class="item-price">52,000 FCFA</div>
+                        </div>
+                    </div>
+                    
+                    <div class="summary-totals">
+                        <div class="total-row">
+                            <span>Sous-total</span>
+                            <span>97,000 FCFA</span>
+                        </div>
+                        
+                        <div class="total-row">
+                            <span>Livraison</span>
+                            <span>2,000 FCFA</span>
+                        </div>
+                        
+                        <div class="total-row discount">
+                            <span>Code promo</span>
+                            <span>-5,000 FCFA</span>
+                        </div>
+                        
+                        <div class="total-row final">
+                            <span>Total</span>
+                            <span>94,000 FCFA</span>
+                        </div>
+                    </div>
+                    
+                    <div class="summary-actions">
+                        <button class="btn btn-ghost btn-full">
+                            <i class="fas fa-tag"></i>
+                            Ajouter un code promo
+                        </button>
+                        
+                        <button class="btn btn-primary btn-full">
+                            <i class="fas fa-lock"></i>
+                            Payer 94,000 FCFA
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- Sécurité -->
+                <div class="security-badge">
+                    <i class="fas fa-shield-alt"></i>
+                    <div>
+                        <strong>Paiement sécurisé</strong>
+                        <span>Chiffrement SSL 256-bit</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
 
-<main class="max-w-4xl mx-auto px-4 py-8">
-  <div class="grid lg:grid-cols-5 gap-8">
-
-    <!-- ─── Formulaire ─────────────────────────────────────────────────── -->
-    <div class="lg:col-span-3 space-y-6">
-
-      <!-- Adresse de livraison -->
-      <div class="card p-6 space-y-4">
-        <div class="flex items-center justify-between">
-          <h3 class="font-bold text-slate-800 dark:text-white">📍 Adresse de livraison</h3>
+    <style>
+        .checkout-grid {
+            display: grid;
+            grid-template-columns: 1fr 400px;
+            gap: 40px;
+            margin-top: 80px;
+        }
+        
+        .checkout-form {
+            display: flex;
+            flex-direction: column;
+            gap: 32px;
+        }
+        
+        .form-section {
+            background: var(--bg3);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 24px;
+        }
+        
+        .section-title {
+            font-family: 'Barlow Condensed', sans-serif;
+            font-size: 20px;
+            font-weight: 800;
+            color: var(--text);
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            text-transform: uppercase;
+            letter-spacing: -0.5px;
+        }
+        
+        .section-title i {
+            color: var(--orange);
+            font-size: 18px;
+        }
+        
+        .form-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+        }
+        
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        
+        .form-group.full-width {
+            grid-column: 1 / -1;
+        }
+        
+        .form-label {
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--text2);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .form-input {
+            background: var(--bg4);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 12px 16px;
+            font-size: 14px;
+            color: var(--text);
+            transition: all 0.2s;
+        }
+        
+        .form-input:focus {
+            outline: none;
+            border-color: var(--orange);
+            box-shadow: 0 0 0 3px rgba(255, 92, 0, 0.1);
+        }
+        
+        .payment-methods, .delivery-options {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+        
+        .payment-option, .delivery-option {
+            cursor: pointer;
+        }
+        
+        .payment-option input, .delivery-option input {
+            display: none;
+        }
+        
+        .payment-card, .delivery-card {
+            background: var(--bg4);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 16px;
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            transition: all 0.2s;
+        }
+        
+        .payment-option input:checked + .payment-card,
+        .delivery-option input:checked + .delivery-card {
+            border-color: var(--orange);
+            background: rgba(255, 92, 0, 0.05);
+        }
+        
+        .payment-card i, .delivery-card i {
+            font-size: 24px;
+            color: var(--orange);
+            width: 40px;
+            text-align: center;
+        }
+        
+        .payment-card div, .delivery-card div {
+            flex: 1;
+        }
+        
+        .payment-card strong, .delivery-card strong {
+            display: block;
+            font-size: 14px;
+            font-weight: 700;
+            color: var(--text);
+            margin-bottom: 4px;
+        }
+        
+        .payment-card span, .delivery-card span {
+            font-size: 12px;
+            color: var(--text3);
+        }
+        
+        .delivery-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+        
+        .delivery-price {
+            color: var(--orange);
+            font-weight: 700;
+            font-size: 16px;
+        }
+        
+        .delivery-time {
+            font-size: 11px;
+            color: var(--text3);
+            font-style: italic;
+        }
+        
+        .checkout-summary {
+            position: sticky;
+            top: 100px;
+        }
+        
+        .summary-card {
+            background: var(--bg3);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 24px;
+            margin-bottom: 20px;
+        }
+        
+        .summary-title {
+            font-family: 'Barlow Condensed', sans-serif;
+            font-size: 20px;
+            font-weight: 800;
+            color: var(--text);
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            text-transform: uppercase;
+            letter-spacing: -0.5px;
+        }
+        
+        .summary-title i {
+            color: var(--orange);
+        }
+        
+        .summary-items {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            margin-bottom: 24px;
+            padding-bottom: 24px;
+            border-bottom: 1px solid var(--border);
+        }
+        
+        .summary-item {
+            display: grid;
+            grid-template-columns: 60px 1fr auto auto;
+            gap: 12px;
+            align-items: center;
+        }
+        
+        .item-thumb {
+            width: 60px;
+            height: 60px;
+            border-radius: 8px;
+            object-fit: cover;
+        }
+        
+        .item-name {
+            font-weight: 700;
+            color: var(--text);
+            font-size: 14px;
+        }
+        
+        .item-variant {
+            font-size: 12px;
+            color: var(--text3);
+            margin-top: 2px;
+        }
+        
+        .item-quantity {
+            font-size: 13px;
+            color: var(--text2);
+            text-align: center;
+        }
+        
+        .item-price {
+            font-family: 'Barlow Condensed', sans-serif;
+            font-weight: 900;
+            color: var(--orange);
+            font-size: 16px;
+            text-align: right;
+        }
+        
+        .summary-totals {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin-bottom: 24px;
+        }
+        
+        .total-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 14px;
+        }
+        
+        .total-row.discount {
+            color: var(--success);
+        }
+        
+        .total-row.final {
+            font-family: 'Barlow Condensed', sans-serif;
+            font-size: 20px;
+            font-weight: 900;
+            color: var(--text);
+            padding-top: 8px;
+            border-top: 1px solid var(--border);
+        }
+        
+        .summary-actions {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+        
+        .security-badge {
+            background: var(--bg3);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 16px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        
+        .security-badge i {
+            font-size: 20px;
+            color: var(--success);
+        }
+        
+        .security-badge strong {
+            display: block;
+            font-size: 14px;
+            font-weight: 700;
+            color: var(--text);
+            margin-bottom: 2px;
+        }
+        
+        .security-badge span {
+            font-size: 12px;
+            color: var(--text3);
+        }
+        
+        @media (max-width: 1024px) {
+            .checkout-grid {
+                grid-template-columns: 1fr;
+                gap: 32px;
+            }
+            
+            .checkout-summary {
+                position: static;
+            }
+        }
+        
+        @media (max-width: 640px) {
+            .form-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .summary-item {
+                grid-template-columns: 50px 1fr auto;
+                gap: 8px;
+            }
+            
+            .item-thumb {
+                width: 50px;
+                height: 50px;
+            }
+        }
+    </style>
+    
+    <script src="../assets/js/app.js"></script>
+</body>
+</html>
           <button id="btn-voice-address" class="btn btn-ghost gap-1 text-sm" title="Remplir par voix">
             🎙️ Vocal
           </button>
