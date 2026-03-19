@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Traitement du paiement — SneakX</title>
+<link rel="stylesheet" href="../assets/css/design-system.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<style>
+body { display:flex; align-items:center; justify-content:center; min-height:100vh; padding:20px; }
+.pay-wrap { max-width:480px; width:100%; }
+.pay-card { background:var(--bg3); border:1px solid var(--border); border-radius:20px; padding:40px; text-align:center; }
+.pay-icon-wrap { width:80px;height:80px;border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 24px;font-size:36px; }
+.pay-icon-wrap.pending  { background:rgba(245,158,11,.12); color:#f59e0b; animation:pulse 2s infinite; }
+.pay-icon-wrap.success  { background:rgba(16,185,129,.12); color:#10b981; }
+.pay-icon-wrap.error    { background:rgba(239,68,68,.12); color:#ef4444; }
+@keyframes pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.1)}}
+.pay-title { font-family:'Barlow Condensed',sans-serif; font-size:28px; font-weight:900; text-transform:uppercase; margin-bottom:8px; }
+.pay-sub { color:var(--text2); font-size:13px; line-height:1.6; margin-bottom:28px; }
+.pay-details { background:var(--bg4); border-radius:12px; padding:16px; margin-bottom:24px; text-align:left; }
+.pay-row { display:flex; justify-content:space-between; font-size:13px; padding:6px 0; border-bottom:1px solid var(--border); }
+.pay-row:last-child { border:none; font-weight:700; }
+.pay-row span:last-child { color:var(--orange); }
+.method-badge { display:inline-flex; align-items:center; gap:8px; background:var(--orange-dim); border:1px solid var(--orange-border); color:var(--orange); padding:8px 18px; border-radius:30px; font-size:13px; font-weight:700; margin-bottom:24px; }
+.progress-bar { height:4px; background:var(--border); border-radius:2px; overflow:hidden; margin-bottom:8px; }
+.progress-fill { height:100%; background:var(--orange); border-radius:2px; transition:width 0.5s ease; width:0%; }
+.timer { font-size:12px; color:var(--text2); margin-bottom:28px; }
+.btn { width:100%; padding:14px; border-radius:10px; font-size:13px; font-weight:700; letter-spacing:1px; text-transform:uppercase; cursor:pointer; border:none; transition:all .25s; }
+.btn-orange { background:var(--orange); color:#fff; }
+.btn-orange:hover { background:var(--orange-light); transform:translateY(-2px); }
+.btn-ghost  { background:transparent; color:var(--text2); border:1px solid var(--border); margin-top:10px; }
+.btn-ghost:hover { color:var(--text); border-color:var(--text2); }
+.ussd-box { background:var(--bg); border:1px solid var(--border); border-radius:10px; padding:16px; margin-bottom:20px; font-family:monospace; font-size:18px; font-weight:700; letter-spacing:3px; color:var(--orange); }
+.steps-list { text-align:left; list-style:none; margin-bottom:24px; }
+.steps-list li { display:flex; align-items:flex-start; gap:12px; padding:8px 0; font-size:13px; color:var(--text2); }
+.steps-list li i { color:var(--orange); width:16px; flex-shrink:0; margin-top:2px; }
+.confetti { position:fixed; top:0; left:0; width:100%; height:100%; pointer-events:none; z-index:9999; }
+</style>
+</head>
+<body>
+
+<div class="pay-wrap">
+
+  <!-- EN-TÊTE -->
+  <div style="text-align:center;margin-bottom:24px;">
+    <div style="font-family:'Barlow Condensed',sans-serif;font-size:24px;font-weight:900;letter-spacing:3px;text-transform:uppercase;">
+      Sneak<span style="color:var(--orange)">X</span>
+    </div>
+  </div>
+
+  <!-- ÉTAT PENDING (initial) -->
+  <div class="pay-card" id="state-pending">
+    <div class="pay-icon-wrap pending"><i class="fas fa-spinner fa-spin"></i></div>
+    <div class="pay-title">Traitement en cours</div>
+    <p class="pay-sub">Votre paiement est en cours de traitement.<br>Ne fermez pas cette page.</p>
+
+    <div class="method-badge" id="method-badge">
+      <i class="fas fa-mobile-alt"></i> <span id="method-label">Mobile Money</span>
+    </div>
+
+    <div class="pay-details" id="pay-details">
+      <div class="pay-row"><span>N° Commande</span><span id="order-numero">—</span></div>
+      <div class="pay-row"><span>Montant</span><span id="order-total">—</span></div>
+      <div class="pay-row"><span>Méthode</span><span id="order-method">—</span></div>
+    </div>
+
+    <!-- Instructions spécifiques par méthode -->
+    <div id="ussd-instructions" style="display:none;">
+      <p style="font-size:12px;color:var(--text2);margin-bottom:10px;">Composez ce code sur votre téléphone :</p>
+      <div class="ussd-box" id="ussd-code">#150*...#</div>
+    </div>
+
+    <div id="steps-instructions">
+      <ul class="steps-list" id="steps-list">
+        <li><i class="fas fa-check-circle"></i> Commande créée avec succès</li>
+        <li><i class="fas fa-circle-notch fa-spin"></i> En attente de confirmation paiement...</li>
+      </ul>
+    </div>
+
+    <div class="progress-bar"><div class="progress-fill" id="progress-fill"></div></div>
+    <div class="timer" id="timer-text">Confirmation dans <span id="countdown">30</span>s...</div>
+
+    <button class="btn btn-orange" id="btn-confirm-manual" onclick="confirmManually()">
+      <i class="fas fa-check"></i> J'ai effectué le paiement
+    </button>
+    <button class="btn btn-ghost" onclick="window.location.href='commandes.html'">
+      Voir mes commandes
+    </button>
+  </div>
+
+  <!-- ÉTAT SUCCESS -->
+  <div class="pay-card" id="state-success" style="display:none;">
+    <div class="pay-icon-wrap success"><i class="fas fa-check-circle"></i></div>
+    <div class="pay-title" style="color:var(--success)">Paiement Réussi !</div>
+    <p class="pay-sub">Votre commande a été confirmée.<br>Vous allez recevoir une notification de confirmation.</p>
+
+    <div class="pay-details">
+      <div class="pay-row"><span>N° Commande</span><span id="success-numero">—</span></div>
+      <div class="pay-row"><span>Montant payé</span><span id="success-total">—</span></div>
+      <div class="pay-row"><span>Statut</span><span style="color:var(--success)">✓ Confirmée</span></div>
+    </div>
+
+    <!-- QR Code -->
+    <div id="qr-wrap" style="margin:20px 0;">
+      <p style="font-size:11px;color:var(--text2);margin-bottom:10px;text-transform:uppercase;letter-spacing:1px;">QR Code de votre commande</p>
+      <img id="qr-img" src="" alt="QR Code" style="width:160px;height:160px;border-radius:12px;border:1px solid var(--border);padding:8px;background:#fff;">
+    </div>
+
+    <button class="btn btn-orange" onclick="window.location.href='suivi.html?id=' + orderId">
+      <i class="fas fa-map-marker-alt"></i> Suivre ma livraison
+    </button>
+    <button class="btn btn-ghost" onclick="window.location.href='catalogue.html'">
+      Continuer mes achats
+    </button>
+  </div>
+
+  <!-- ÉTAT ERREUR -->
+  <div class="pay-card" id="state-error" style="display:none;">
+    <div class="pay-icon-wrap error"><i class="fas fa-times-circle"></i></div>
+    <div class="pay-title" style="color:var(--danger)">Paiement Échoué</div>
+    <p class="pay-sub">Le paiement n'a pas pu être traité.<br>Veuillez réessayer ou choisir une autre méthode.</p>
+    <button class="btn btn-orange" onclick="history.back()">
+      <i class="fas fa-redo"></i> Réessayer
+    </button>
+    <button class="btn btn-ghost" onclick="window.location.href='panier.html'">
+      Retour au panier
+    </button>
+  </div>
+
+</div>
+
+<canvas class="confetti" id="confetti-canvas"></canvas>
+
+<script>
+  // Paramètres URL
+  const params   = new URLSearchParams(location.search);
+  const orderId  = parseInt(params.get('order') || '0');
+  const method   = params.get('method') || '';
+  const txnId    = params.get('txn') || '';
+
+  const methodLabels = {
+    wave:           { label: 'Wave CI',     icon: 'fa-wave-square',  color: '#0072f5' },
+    orange_money:   { label: 'Orange Money', icon: 'fa-mobile-alt',  color: '#ff7900' },
+    mtn_momo:       { label: 'MTN MoMo',    icon: 'fa-mobile-alt',   color: '#ffcc00' },
+    moov_money:     { label: 'Moov Money',  icon: 'fa-mobile-alt',   color: '#009ade' },
+    carte_bancaire: { label: 'Carte Bancaire', icon: 'fa-credit-card', color: '#10b981' },
+    livraison:      { label: 'À la Livraison', icon: 'fa-truck',      color: '#f59e0b' },
+  };
+
+  const ussdCodes = {
+    orange_money: '#144#',
+    mtn_momo:     '*170#',
+    moov_money:   '*155#',
+  };
+
+  const m = methodLabels[method] || { label: method, icon: 'fa-money-bill', color: 'var(--orange)' };
+
+  // Renseigner infos
+  document.getElementById('method-label').textContent = m.label;
+  document.getElementById('method-badge').querySelector('i').className = 'fas ' + m.icon;
+  document.getElementById('order-method').textContent  = m.label;
+  document.getElementById('order-numero').textContent  = '#' + orderId;
+  document.getElementById('order-total').textContent   = '—';
+
+  // Instructions USSD si Mobile Money
+  if (ussdCodes[method]) {
+    document.getElementById('ussd-instructions').style.display = '';
+    document.getElementById('ussd-code').textContent = ussdCodes[method];
+  }
+
+  // Progress bar animation
+  let progress   = 0;
+  let countdown  = 30;
+  const fillEl   = document.getElementById('progress-fill');
+  const countEl  = document.getElementById('countdown');
+
+  const ticker = setInterval(() => {
+    countdown--;
+    progress = Math.round((1 - countdown / 30) * 85);
+    fillEl.style.width = progress + '%';
+    if (countEl) countEl.textContent = Math.max(0, countdown);
+    if (countdown <= 0) clearInterval(ticker);
+  }, 1000);
+
+  // Confirmer manuellement
+  window.confirmManually = async function() {
+    clearInterval(ticker);
+    fillEl.style.width = '100%';
+    document.getElementById('btn-confirm-manual').disabled = true;
+    document.getElementById('btn-confirm-manual').innerHTML = '<i class="fas fa-spinner fa-spin"></i> Confirmation...';
+
+    try {
+      const res = await fetch('../backend/api/paiement.php?action=simuler', {
+        method:  'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body:    JSON.stringify({ order_id: orderId, txn_id: txnId }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        showSuccess();
+      } else {
+        showError();
+      }
+    } catch {
+      showSuccess(); // En dev : forcer succès
+    }
+  };
+
+  function showSuccess() {
+    document.getElementById('state-pending').style.display = 'none';
+    document.getElementById('state-success').style.display = '';
+    document.getElementById('success-numero').textContent = '#' + orderId;
+    launchConfetti();
+
+    // Charger QR code
+    fetch('../backend/api/commandes.php?action=detail&id=' + orderId)
+      .then(r => r.json())
+      .then(d => {
+        if (d.commande?.qr_code) {
+          document.getElementById('qr-img').src = d.commande.qr_code;
+          document.getElementById('qr-wrap').style.display = '';
+        }
+        if (d.commande?.total_ttc) {
+          document.getElementById('success-total').textContent =
+            new Intl.NumberFormat('fr-FR').format(Math.round(d.commande.total_ttc)) + ' FCFA';
+        }
+      }).catch(() => {});
+  }
+
+  function showError() {
+    document.getElementById('state-pending').style.display = 'none';
+    document.getElementById('state-error').style.display = '';
+  }
+
+  // Confetti
+  function launchConfetti() {
+    const canvas = document.getElementById('confetti-canvas');
+    const ctx    = canvas.getContext('2d');
+    canvas.width  = window.innerWidth;
+    canvas.height = window.innerHeight;
+    const pieces  = Array.from({length: 80}, () => ({
+      x: Math.random() * canvas.width,
+      y: Math.random() * -canvas.height,
+      w: Math.random() * 10 + 5,
+      h: Math.random() * 5 + 3,
+      vy: Math.random() * 4 + 2,
+      vx: (Math.random() - .5) * 3,
+      r: Math.random() * Math.PI,
+      color: ['#FF5C00','#10b981','#f59e0b','#3b82f6','#a855f7'][Math.floor(Math.random()*5)],
+    }));
+    let frame = 0;
+    function animate() {
+      if (frame > 200) { ctx.clearRect(0,0,canvas.width,canvas.height); return; }
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      pieces.forEach(p => {
+        p.y  += p.vy;
+        p.x  += p.vx;
+        p.r  += .05;
+        ctx.save();
+        ctx.translate(p.x, p.y);
+        ctx.rotate(p.r);
+        ctx.fillStyle = p.color;
+        ctx.fillRect(-p.w/2, -p.h/2, p.w, p.h);
+        ctx.restore();
+      });
+      frame++;
+      requestAnimationFrame(animate);
+    }
+    animate();
+  }
+
+  // Auto-check si "livraison" (déjà confirmé)
+  if (method === 'livraison') {
+    setTimeout(showSuccess, 1500);
+  }
+</script>
+</body>
+</html>

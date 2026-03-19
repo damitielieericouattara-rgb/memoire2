@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="fr" data-theme="dark">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SneakX — Marketplace d'échange</title>
+<link rel="stylesheet" href="../assets/css/design-system.css">
+<link rel="stylesheet" href="../assets/css/accessibility.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<style>
+.exchange-card{background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius-lg);overflow:hidden;transition:all .25s;cursor:pointer}
+.exchange-card:hover{transform:translateY(-4px);box-shadow:var(--shadow);border-color:var(--orange-border)}
+.cond-badge{font-size:10px;padding:3px 8px;border-radius:10px;font-weight:700}
+.cond-LIKE_NEW{background:rgba(16,185,129,.15);color:var(--success)}
+.cond-GOOD{background:rgba(59,130,246,.15);color:var(--info)}
+.cond-FAIR{background:rgba(245,158,11,.15);color:var(--warning)}
+</style>
+</head>
+<body>
+<div id="sx-header-placeholder"></div>
+<main class="page-main"><div class="container">
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:32px 0 24px;flex-wrap:wrap;gap:16px">
+        <div>
+            <h1 class="section-title">Marketplace <span>d'Échange</span></h1>
+            <div class="section-subtitle">Achetez et revendez des sneakers entre membres SneakX</div>
+        </div>
+        <button class="btn btn-primary" id="sell-btn"><i class="fas fa-plus"></i> Vendre/Échanger</button>
+    </div>
+
+    <!-- Filtres type -->
+    <div style="display:flex;gap:8px;margin-bottom:24px;flex-wrap:wrap">
+        <div class="filter-tag active" data-type="">Tout</div>
+        <div class="filter-tag" data-type="SALE">Vente</div>
+        <div class="filter-tag" data-type="EXCHANGE">Échange</div>
+        <div class="filter-tag" data-type="BOTH">Vente & Échange</div>
+    </div>
+
+    <div id="exchange-grid" class="grid-4">
+        ${Array(8).fill('<div class="skeleton" style="height:280px;border-radius:var(--radius-lg)"></div>').join('')}
+    </div>
+</div></main>
+
+<!-- Modal créer annonce -->
+<div class="modal-overlay" id="sell-modal">
+    <div class="modal">
+        <div class="modal-header">
+            <div class="modal-title">🏷️ Créer une annonce</div>
+            <button class="modal-close" onclick="document.getElementById('sell-modal').classList.remove('active')">✕</button>
+        </div>
+        <div class="form-group">
+            <label class="form-label">Titre *</label>
+            <input type="text" id="sell-title" class="form-control" placeholder="Ex: Air Max 90 — Taille 42">
+        </div>
+        <div class="form-group">
+            <label class="form-label">Prix (FCFA) *</label>
+            <input type="number" id="sell-price" class="form-control" placeholder="Ex: 35000">
+        </div>
+        <div class="form-group">
+            <label class="form-label">État *</label>
+            <select id="sell-condition" class="form-control">
+                <option value="LIKE_NEW">Comme neuf</option>
+                <option value="GOOD">Bon état</option>
+                <option value="FAIR">État correct</option>
+                <option value="FOR_PARTS">Pour pièces</option>
+            </select>
+        </div>
+        <div class="form-group">
+            <label class="form-label">Type *</label>
+            <select id="sell-type" class="form-control">
+                <option value="SALE">Vente uniquement</option>
+                <option value="EXCHANGE">Échange uniquement</option>
+                <option value="BOTH">Vente ou Échange</option>
+            </select>
+        </div>
+        <div class="form-group">
+            <label class="form-label">Description</label>
+            <textarea id="sell-desc" class="form-control" rows="3" placeholder="Décrivez votre article..."></textarea>
+        </div>
+        <button class="btn btn-primary" style="width:100%" onclick="createListing()">Publier l'annonce</button>
+    </div>
+</div>
+
+<script>
+let currentType = '';
+
+// Static exchange items
+const EXCHANGE_ITEMS = [
+    { id:1, title:'Nike Air Max 90 - Taille 42', price:25000, condition:'GOOD', type:'SALE', seller_name:'Kofi A.', images:JSON.stringify(['https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=300&q=80']), created_at:'2025-01-10' },
+    { id:2, title:'Jordan 1 Mid - Taille 43', price:45000, condition:'LIKE_NEW', type:'SALE', seller_name:'Amara D.', images:JSON.stringify(['https://images.unsplash.com/photo-1549298916-b41d501d3772?w=300&q=80']), created_at:'2025-01-08' },
+    { id:3, title:'Adidas Stan Smith - 41', price:18000, condition:'GOOD', type:'EXCHANGE', seller_name:'Soro K.', images:JSON.stringify(['https://images.unsplash.com/photo-1556905055-8f358a7a797e?w=300&q=80']), created_at:'2025-01-05' },
+    { id:4, title:'Puma RS-X - Taille 44', price:22000, condition:'FAIR', type:'BOTH', seller_name:'Yao M.', images:JSON.stringify(['https://images.unsplash.com/photo-1600269452121-4f2416e55c28?w=300&q=80']), created_at:'2025-01-03' },
+    { id:5, title:'New Balance 574 - 40', price:30000, condition:'LIKE_NEW', type:'SALE', seller_name:'Diaby F.', images:JSON.stringify(['https://images.unsplash.com/photo-1608231387022-66b8c6c0445c?w=300&q=80']), created_at:'2024-12-28' },
+    { id:6, title:'Reebok Classic - Taille 42', price:15000, condition:'FAIR', type:'EXCHANGE', seller_name:'Bamba T.', images:JSON.stringify(['https://images.unsplash.com/photo-1539185441755-769473a23570?w=300&q=80']), created_at:'2024-12-25' }
+];
+
+function showToast(title, msg, type) {
+    let c = document.getElementById('toast-container');
+    if (!c) { c = document.createElement('div'); c.id = 'toast-container'; c.style.cssText = 'position:fixed;bottom:20px;right:20px;z-index:9999;display:flex;flex-direction:column;gap:8px'; document.body.appendChild(c); }
+    const t = document.createElement('div');
+    const bg = type==='success'?'#10b981':type==='danger'||type==='error'?'#ef4444':'var(--orange)';
+    t.style.cssText = `background:${bg};color:#fff;padding:12px 20px;border-radius:8px;font-size:13px;font-weight:600;max-width:280px;animation:fadeInUp .3s ease`;
+    t.textContent = `${title} ${msg}`;
+    c.appendChild(t);
+    setTimeout(()=>{t.style.opacity='0';t.style.transform='translateX(20px)';t.style.transition='.3s';setTimeout(()=>t.remove(),300)},3000);
+}
+
+async function loadListings() {
+    const items = currentType ? EXCHANGE_ITEMS.filter(i => i.type === currentType) : EXCHANGE_ITEMS;
+    const grid = document.getElementById('exchange-grid');
+    if (!items.length) {
+        grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:60px;color:var(--text2)"><div style="font-size:48px;margin-bottom:16px">🔄</div>Aucune annonce pour l\'instant</div>';
+        return;
+    }
+    grid.innerHTML = '';
+    items.forEach(item => {
+        const imgs = item.images ? JSON.parse(item.images) : [];
+        const card = document.createElement('div');
+        card.className = 'exchange-card';
+        card.innerHTML = `
+        <div style="height:180px;background:var(--bg4);display:flex;align-items:center;justify-content:center;overflow:hidden">
+            ${imgs.length ? `<img src="${imgs[0]}" style="width:100%;height:100%;object-fit:cover">` : '<span style="font-size:52px">👟</span>'}
+        </div>
+        <div style="padding:14px">
+            <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px">
+                <div style="font-weight:700;font-size:14px">${item.title}</div>
+                <div class="cond-badge cond-${item.condition}">${{LIKE_NEW:'Neuf',GOOD:'Bon',FAIR:'Correct',FOR_PARTS:'Pièces'}[item.condition]||item.condition}</div>
+            </div>
+            <div style="color:var(--orange);font-weight:800;font-size:18px;margin-bottom:6px">${parseFloat(item.price).toLocaleString('fr-FR')} FCFA</div>
+            <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--text3)">
+                <span>Par ${item.seller_name||'Vendeur'}</span>
+                <span>${{SALE:'💰 Vente',EXCHANGE:'🔄 Échange',BOTH:'💰🔄 Les deux'}[item.type]||item.type}</span>
+            </div>
+        </div>`;
+        card.addEventListener('click', () => showToast('📋', `${item.title} — ${parseFloat(item.price).toLocaleString('fr-FR')} FCFA`, 'info'));
+        grid.appendChild(card);
+    });
+}
+
+async function createListing() {
+    if (!localStorage.getItem('access_token')) { window.location.href = 'connexion.html'; return; }
+    const title = document.getElementById('sell-title')?.value;
+    const price = document.getElementById('sell-price')?.value;
+    if (!title || !price) { showToast('Erreur', 'Remplissez tous les champs', 'danger'); return; }
+    EXCHANGE_ITEMS.unshift({
+        id: Date.now(),
+        title,
+        price: parseFloat(price),
+        condition: document.getElementById('sell-condition')?.value || 'GOOD',
+        type: document.getElementById('sell-type')?.value || 'SALE',
+        seller_name: 'Vous',
+        images: JSON.stringify([]),
+        created_at: new Date().toISOString().split('T')[0]
+    });
+    document.getElementById('sell-modal')?.classList.remove('active');
+    showToast('✅', 'Annonce publiée !', 'success');
+    loadListings();
+}
+
+// Filtres type
+document.querySelectorAll('[data-type]').forEach(el => {
+    el.addEventListener('click', () => {
+        document.querySelectorAll('[data-type]').forEach(e => e.classList.remove('active'));
+        el.classList.add('active');
+        currentType = el.dataset.type;
+        loadListings();
+    });
+});
+
+document.getElementById('sell-btn')?.addEventListener('click', () => {
+    if (!localStorage.getItem('token')) { window.location.href = 'connexion.html'; return; }
+    document.getElementById('sell-modal').classList.add('active');
+});
+
+loadListings();
+</script>
+<script type="module">
+import { init } from '../assets/js/modules/sx-shared.js';
+const saved = localStorage.getItem('sx_theme') || 'dark';
+document.documentElement.setAttribute('data-theme', saved);
+init('echange');
+</script>
+</body>
+</html>

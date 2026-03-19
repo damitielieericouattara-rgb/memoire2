@@ -1,0 +1,136 @@
+<!-- Fichier: /frontend/pages/connexion.html -->
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Connexion — SneakX</title>
+    <link rel="stylesheet" href="../assets/css/design-system.css">
+    <link rel="stylesheet" href="../assets/css/accessibility.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .auth-page { min-height: 100vh; display: grid; grid-template-columns: 1fr 1fr; }
+        .auth-visual { background: #0D0D0D; position: relative; overflow: hidden; display: flex; align-items: center; justify-content: center; }
+        .auth-visual::before { content:''; position:absolute; top:-100px; right:-100px; width:500px; height:500px; background:radial-gradient(circle,rgba(255,92,0,0.25) 0%,transparent 65%); }
+        .auth-visual::after { content:''; position:absolute; bottom:-80px; left:-80px; width:350px; height:350px; background:radial-gradient(circle,rgba(255,92,0,0.12) 0%,transparent 65%); }
+        .auth-visual-content { position:relative; z-index:1; text-align:center; padding:40px; color:#fff; }
+        .auth-shoe { width:320px; height:280px; object-fit:contain; animation:float 4s ease-in-out infinite; display:block; filter:drop-shadow(0 30px 60px rgba(255,92,0,0.5)); }
+        @keyframes float { 0%,100%{transform:translateY(0) rotate(-5deg)} 50%{transform:translateY(-18px) rotate(-5deg)} }
+        .auth-visual-title { font-family:'Barlow Condensed',sans-serif; font-size:52px; font-weight:900; text-transform:uppercase; letter-spacing:-2px; line-height:1; margin-top:24px; }
+        .auth-visual-title span { color:var(--orange); }
+        .auth-visual-sub { color:rgba(255,255,255,0.5); font-size:14px; margin-top:12px; }
+        .auth-stats { display:flex; gap:30px; justify-content:center; margin-top:36px; }
+        .auth-stat-num { font-family:'Barlow Condensed',sans-serif; font-size:28px; font-weight:900; }
+        .auth-stat-label { color:rgba(255,255,255,0.4); font-size:11px; margin-top:2px; letter-spacing:1px; text-transform:uppercase; }
+        .auth-form-side { background:var(--bg); display:flex; align-items:center; justify-content:center; padding:40px; }
+        .auth-form-wrap { width:100%; max-width:420px; }
+        .auth-logo-sm { display:flex; align-items:center; gap:8px; margin-bottom:40px; cursor:pointer; }
+        .auth-logo-sm .lname { font-family:'Barlow Condensed',sans-serif; font-size:22px; font-weight:900; letter-spacing:3px; text-transform:uppercase; color:var(--text); }
+        .auth-logo-sm .orange { color:var(--orange); }
+        .auth-head { margin-bottom:32px; }
+        .auth-head h1 { font-family:'Barlow Condensed',sans-serif; font-size:40px; font-weight:900; text-transform:uppercase; letter-spacing:-1px; color:var(--text); }
+        .auth-head p { color:var(--text2); font-size:14px; margin-top:6px; }
+        .forgot-link { color:var(--text2); font-size:12px; text-align:right; display:block; margin-top:6px; transition:color .2s; }
+        .forgot-link:hover { color:var(--orange); }
+        .divider-or { display:flex; align-items:center; gap:12px; color:var(--text3); font-size:12px; margin:20px 0; }
+        .divider-or::before,.divider-or::after { content:''; flex:1; height:1px; background:var(--border); }
+        .register-link { text-align:center; margin-top:20px; font-size:13px; color:var(--text2); }
+        .register-link a { color:var(--orange); font-weight:700; }
+        .theme-top { position:fixed; top:20px; right:20px; z-index:99; }
+        @media (max-width:768px) { .auth-page{grid-template-columns:1fr} .auth-visual{display:none} .auth-form-side{padding:30px 24px;padding-top:60px;align-items:flex-start;min-height:100vh;} }
+    </style>
+</head>
+<body>
+    <div class="theme-top">
+        <button class="sx-theme-btn" id="sx-theme-btn" onclick="SX.toggleTheme()" title="Changer le thème"><i class="fas fa-sun"></i></button>
+    </div>
+    <div class="auth-page">
+        <div class="auth-visual">
+            <div class="auth-visual-content">
+                <img class="auth-shoe" src="https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=600&q=85" alt="SneakX Shoes">
+                <div class="auth-visual-title">Sneak<span>X</span></div>
+                <p class="auth-visual-sub">Votre boutique sneakers en ligne</p>
+                <div class="auth-stats">
+                    <div><div class="auth-stat-num">5k+</div><div class="auth-stat-label">Produits</div></div>
+                    <div><div class="auth-stat-num">120k</div><div class="auth-stat-label">Clients</div></div>
+                    <div><div class="auth-stat-num">98%</div><div class="auth-stat-label">Satisfaction</div></div>
+                </div>
+            </div>
+        </div>
+        <div class="auth-form-side">
+            <div class="auth-form-wrap">
+                <div class="auth-logo-sm" onclick="window.location.href='index.html'">
+                    <i class="fas fa-shopping-bag" style="color:var(--orange);font-size:20px"></i>
+                    <span class="lname">Sneak<span class="orange">X</span></span>
+                </div>
+                <div class="auth-head">
+                    <h1>Bon retour !</h1>
+                    <p>Connectez-vous à votre compte pour continuer</p>
+                </div>
+                <form id="loginForm">
+                    <div class="sx-form-group">
+                        <label class="sx-label">Adresse email</label>
+                        <div class="sx-input-wrap">
+                            <i class="fas fa-envelope sx-input-icon"></i>
+                            <input type="email" id="email" class="sx-input has-icon" placeholder="votre@email.com" required autocomplete="email" autofocus>
+                        </div>
+                    </div>
+                    <div class="sx-form-group">
+                        <label class="sx-label">Mot de passe</label>
+                        <div class="sx-input-wrap">
+                            <i class="fas fa-lock sx-input-icon"></i>
+                            <input type="password" id="password" class="sx-input has-icon" placeholder="••••••••" required autocomplete="current-password" style="padding-right:44px">
+                            <button type="button" class="sx-pwd-toggle" onclick="togglePwd()" aria-label="Afficher/masquer"><i class="fas fa-eye" id="eyeIcon"></i></button>
+                        </div>
+                        <a href="#" class="forgot-link">Mot de passe oublié ?</a>
+                    </div>
+                    <div id="alertBox"></div>
+                    <button type="submit" class="sx-btn sx-btn-orange sx-btn-full" id="submitBtn">
+                        <span id="submitText"><i class="fas fa-sign-in-alt"></i> Se connecter</span>
+                        <span id="submitSpin" style="display:none"><i class="fas fa-spinner fa-spin"></i> Connexion...</span>
+                    </button>
+                </form>
+                <div class="divider-or">ou</div>
+                <a href="inscription.html" class="sx-btn sx-btn-ghost sx-btn-full" style="display:flex;justify-content:center;gap:8px"><i class="fas fa-user-plus"></i> Créer un compte gratuitement</a>
+                <p class="register-link">Pas encore de compte ? <a href="inscription.html">S'inscrire</a></p>
+                <div style="text-align:center;margin-top:16px;font-size:11px"><a href="#" onclick="showDiag()" style="color:var(--text3)">🔧 Diagnostic</a></div>
+                <div id="diagBox" style="display:none;margin-top:12px;font-size:11px;background:var(--bg3);border:1px solid var(--border);padding:12px;border-radius:8px;word-break:break-all;color:var(--text2)"></div>
+            </div>
+        </div>
+    </div>
+    <div id="sx-toast-container"></div>
+    <script type="module">
+        import { initTheme, toggleTheme, updateThemeIcon } from '../assets/js/modules/sx-shared.js';
+        import API from '../assets/js/modules/api.js';
+        const theme = initTheme(); updateThemeIcon(theme);
+        window.SX = { toggleTheme: () => { toggleTheme(); updateThemeIcon(document.documentElement.getAttribute('data-theme')); } };
+        if (localStorage.getItem('access_token')) window.location.href = 'dashboard.html';
+        window.togglePwd = () => { const f=document.getElementById('password'),i=document.getElementById('eyeIcon'); f.type=f.type==='password'?'text':'password'; i.className=f.type==='text'?'fas fa-eye-slash':'fas fa-eye'; };
+        window.showDiag = () => { const b=document.getElementById('diagBox'); b.style.display=b.style.display==='none'?'block':'none'; b.innerHTML=`<strong>Page:</strong> ${location.href}<br><strong>Comptes demo:</strong><br>admin@sneakx.ci / Admin@123<br>eric@test.ci / Admin@123`; };
+        document.getElementById('loginForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const email=document.getElementById('email').value.trim(), password=document.getElementById('password').value;
+            if(!email||!password){showAlert('error','Veuillez remplir tous les champs.');return;}
+            setLoading(true);
+            try {
+                const resp = await API.auth.login(email, password);
+                if(resp.success){
+                    showAlert('success','Connexion réussie ! Redirection...');
+                    const role = resp.user?.role || 'client';
+                    const redirect = (role === 'admin') ? 'admin/dashboard.html' : 'dashboard.html';
+                    setTimeout(()=>window.location.href=redirect, 800);
+                } else {
+                    showAlert('error', resp.error || 'Email ou mot de passe incorrect.');
+                    setLoading(false);
+                }
+            } catch(err) {
+                console.error(err);
+                showAlert('error', 'Une erreur est survenue. Veuillez réessayer.');
+                setLoading(false);
+            }
+        });
+        function setLoading(on){document.getElementById('submitBtn').disabled=on;document.getElementById('submitText').style.display=on?'none':'flex';document.getElementById('submitSpin').style.display=on?'inline':'none';}
+        function showAlert(type,msg){const cls=type==='success'?'sx-alert-success':'sx-alert-error',icon=type==='success'?'fa-check-circle':'fa-exclamation-circle';document.getElementById('alertBox').innerHTML=`<div class="sx-alert ${cls}"><i class="fas ${icon}"></i>${msg}</div>`;}
+    </script>
+</body>
+</html>

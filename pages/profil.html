@@ -1,0 +1,298 @@
+<!-- Fichier: /frontend/pages/profil.html -->
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mon Profil — SneakX</title>
+    <link rel="stylesheet" href="../assets/css/design-system.css">
+    <link rel="stylesheet" href="../assets/css/accessibility.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<style>
+        /* SneakX override */
+        body { font-family: 'Barlow', sans-serif; }
+        .container { max-width: 900px; margin: 0 auto; padding: 90px 60px 60px; }
+        h1, h2, h3 { font-family: 'Barlow Condensed', sans-serif; font-weight: 900; text-transform: uppercase; letter-spacing: -1px; color: var(--text); }
+        h1 { font-size: 40px; }
+        h2 { font-size: 26px; }
+        h1 span { color: var(--orange); }
+        .btn-primary { background: var(--orange); color: #fff; border: none; border-radius: 8px; font-family: 'Barlow', sans-serif; font-weight: 700; font-size: 12px; letter-spacing: 1px; text-transform: uppercase; padding: 10px 20px; cursor: pointer; transition: all .2s; }
+        .btn-primary:hover { background: var(--orange-light); }
+        .btn-secondary { background: transparent; color: var(--text2); border: 1px solid var(--border2); border-radius: 8px; font-family: 'Barlow', sans-serif; font-weight: 700; font-size: 12px; text-transform: uppercase; padding: 10px 20px; cursor: pointer; transition: all .2s; }
+        .btn-secondary:hover { border-color: var(--text2); color: var(--text); }
+        .btn-danger { background: rgba(239,68,68,.1); color: #ef4444; border: 1px solid rgba(239,68,68,.2); border-radius: 8px; font-family: 'Barlow', sans-serif; font-weight: 700; font-size: 12px; text-transform: uppercase; padding: 10px 20px; cursor: pointer; transition: all .2s; }
+        .btn-danger:hover { background: rgba(239,68,68,.2); }
+        .text-primary { color: var(--orange) !important; }
+        .text-secondary { color: var(--text2) !important; }
+        .form-input, .form-select, .form-textarea { background: var(--bg); border: 1px solid var(--border2); border-radius: 8px; padding: 10px 14px; color: var(--text); font-family: 'Barlow', sans-serif; font-size: 13px; width: 100%; outline: none; }
+        .form-input:focus, .form-select:focus, .form-textarea:focus { border-color: var(--orange); }
+        .card { background: var(--bg3); border: 1px solid var(--border); border-radius: 14px; padding: 24px; margin-bottom: 20px; }
+        .alert { padding: 14px 18px; border-radius: 10px; font-size: 13px; margin: 12px 0; }
+        .alert-success { background: rgba(16,185,129,.1); border: 1px solid rgba(16,185,129,.2); color: #10b981; }
+        .alert-error { background: rgba(239,68,68,.1); border: 1px solid rgba(239,68,68,.2); color: #ef4444; }
+        .avatar { width: 80px; height: 80px; border-radius: 50%; background: var(--orange-dim); border: 2px solid var(--orange-border); display: flex; align-items: center; justify-content: center; font-size: 32px; color: var(--orange); }
+        @media(max-width:768px){.container{padding:80px 16px 40px}}
+    </style>
+</head>
+<body>
+    <div id="sx-header-placeholder"></div>
+    
+
+    <main class="container" style="padding-top:90px; padding-bottom:2rem; max-width:900px;">
+        <h1 class="mb-xl"><i class="fas fa-user-circle text-primary"></i> Mon Profil</h1>
+
+        <!-- Onglets -->
+        <div class="tabs mb-xl">
+            <span class="tab active" onclick="showTab('infos')">Informations</span>
+            <span class="tab" onclick="showTab('password')">Mot de passe</span>
+            <span class="tab" onclick="showTab('accessibility')">Accessibilité</span>
+            <span class="tab" onclick="showTab('addresses')">Adresses</span>
+        </div>
+
+        <!-- Infos personnelles -->
+        <div id="tab-infos" class="tab-content active">
+            <div class="card">
+                <div style="text-align:center; margin-bottom:2rem;">
+                    <div style="width:100px; height:100px; border-radius:50%; background:linear-gradient(135deg,#667eea,#764ba2); color:white; font-size:2.5rem; display:flex; align-items:center; justify-content:center; margin:0 auto;">
+                        <i class="fas fa-user"></i>
+                    </div>
+                    <h2 class="mt-md" id="profileName">Chargement...</h2>
+                    <p class="text-secondary" id="profileEmail"></p>
+                </div>
+
+                <div class="form-row" style="display:grid; grid-template-columns:1fr 1fr; gap:1.25rem;">
+                    <div class="form-group">
+                        <label class="form-label">Nom</label>
+                        <input type="text" id="editName" class="form-input">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Prénom</label>
+                        <input type="text" id="editFirstName" class="form-input">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Email</label>
+                        <input type="email" id="editEmail" class="form-input">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Téléphone</label>
+                        <input type="tel" id="editPhone" class="form-input" placeholder="+225...">
+                    </div>
+                </div>
+
+                <div id="profileAlert"></div>
+
+                <button class="btn btn-primary mt-md" onclick="saveProfile()">
+                    <i class="fas fa-save"></i> Sauvegarder
+                </button>
+            </div>
+        </div>
+
+        <!-- Changement de mot de passe -->
+        <div id="tab-password" class="tab-content" style="display:none;">
+            <div class="card">
+                <h3 class="mb-lg">Changer le mot de passe</h3>
+                <div class="form-group">
+                    <label class="form-label required">Mot de passe actuel</label>
+                    <input type="password" id="currentPassword" class="form-input">
+                </div>
+                <div class="form-group">
+                    <label class="form-label required">Nouveau mot de passe</label>
+                    <input type="password" id="newPassword" class="form-input">
+                    <div class="form-help">Minimum 8 caractères</div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label required">Confirmer</label>
+                    <input type="password" id="confirmPassword" class="form-input">
+                </div>
+                <div id="passwordAlert"></div>
+                <button class="btn btn-primary mt-md" onclick="changePassword()">
+                    <i class="fas fa-lock"></i> Modifier
+                </button>
+            </div>
+        </div>
+
+        <!-- Accessibilité -->
+        <div id="tab-accessibility" class="tab-content" style="display:none;">
+            <div class="card">
+                <h3 class="mb-lg">Préférences d'accessibilité</h3>
+
+                <div class="form-group">
+                    <label class="form-label">Mode d'affichage</label>
+                    <div class="grid grid-cols-2" style="gap:1rem;">
+                        <label class="accessibility-option" onclick="setMode('STANDARD')">
+                            <input type="radio" name="accMode" value="STANDARD">
+                            <div class="acc-card">
+                                <i class="fas fa-eye"></i>
+                                <strong>Standard</strong>
+                                <p class="text-sm text-secondary">Interface normale</p>
+                            </div>
+                        </label>
+                        <label class="accessibility-option" onclick="setMode('LOW_VISION')">
+                            <input type="radio" name="accMode" value="LOW_VISION">
+                            <div class="acc-card">
+                                <i class="fas fa-low-vision"></i>
+                                <strong>Malvoyant</strong>
+                                <p class="text-sm text-secondary">Contraste élevé</p>
+                            </div>
+                        </label>
+                        <label class="accessibility-option" onclick="setMode('VOCAL')">
+                            <input type="radio" name="accMode" value="VOCAL">
+                            <div class="acc-card">
+                                <i class="fas fa-microphone"></i>
+                                <strong>Vocal</strong>
+                                <p class="text-sm text-secondary">Navigation vocale</p>
+                            </div>
+                        </label>
+                        <label class="accessibility-option" onclick="setMode('SIGN_LANGUAGE')">
+                            <input type="radio" name="accMode" value="SIGN_LANGUAGE">
+                            <div class="acc-card">
+                                <i class="fas fa-hands"></i>
+                                <strong>LSF</strong>
+                                <p class="text-sm text-secondary">Langue des signes</p>
+                            </div>
+                        </label>
+                    </div>
+                </div>
+
+                <div class="form-group mt-lg">
+                    <label class="form-checkbox">
+                        <input type="checkbox" id="ecoMode" onchange="toggleEco(this.checked)">
+                        <span>
+                            <i class="fas fa-leaf"></i>
+                            Mode économie internet (connexion lente)
+                        </span>
+                    </label>
+                </div>
+
+                <button class="btn btn-primary mt-md" onclick="saveAccessibility()">
+                    <i class="fas fa-save"></i> Enregistrer les préférences
+                </button>
+            </div>
+        </div>
+
+        <!-- Adresses -->
+        <div id="tab-addresses" class="tab-content" style="display:none;">
+            <div class="card">
+                <div class="flex-between mb-md">
+                    <h3>Mes adresses</h3>
+                    <button class="btn btn-primary btn-sm" onclick="addAddress()">
+                        <i class="fas fa-plus"></i> Ajouter
+                    </button>
+                </div>
+                <div id="addressesList">
+                    <p class="text-secondary text-center" style="padding:2rem;">
+                        Aucune adresse enregistrée
+                    </p>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <style>
+        .tabs { border-bottom: 2px solid var(--border-color); }
+        .tab {
+            display: inline-block;
+            padding: 0.75rem 1.5rem;
+            cursor: pointer;
+            border-bottom: 3px solid transparent;
+            margin-bottom: -2px;
+            transition: all 0.2s;
+            font-weight: 500;
+        }
+        .tab.active { border-bottom-color: var(--primary-color); color: var(--primary-color); }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+        .acc-card {
+            border: 2px solid var(--border-color);
+            border-radius: 0.5rem;
+            padding: 1.25rem;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .acc-card i { font-size: 2rem; color: var(--primary-color); display: block; margin-bottom: 0.5rem; }
+        .accessibility-option input { display: none; }
+        .accessibility-option input:checked + .acc-card { border-color: var(--primary-color); background: #eff6ff; }
+    </style>
+
+    <script type="module">
+        import { init, showToast, isAuthenticated, getUser } from '../assets/js/modules/sx-shared.js';
+        import API from '../assets/js/modules/api.js';
+
+        init('profil');
+        if (!isAuthenticated()) { window.location.href = 'connexion.html'; }
+
+        window.addEventListener('DOMContentLoaded', () => {
+            loadUserData();
+        });
+
+        function loadUserData() {
+            const user = getUser();
+            if (!user) return;
+            const fullName = (user.prenom||user.first_name||'') + ' ' + (user.nom||user.name||'');
+            const nameEl = document.getElementById('profileName');
+            if (nameEl) nameEl.textContent = fullName.trim() || user.email;
+            const emailEl = document.getElementById('profileEmail');
+            if (emailEl) emailEl.textContent = user.email || '';
+            // Fill edit fields
+            const setVal = (id, v) => { const el = document.getElementById(id); if(el) el.value = v||''; };
+            setVal('editName', user.nom || user.name || '');
+            setVal('editFirstName', user.prenom || user.first_name || '');
+            setVal('editEmail', user.email || '');
+            setVal('editPhone', user.telephone || user.phone || '');
+        }
+
+        window.showTab = function(tab, el) {
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(c => { c.style.display='none'; c.classList.remove('active'); });
+            if(el) el.classList.add('active');
+            const tc = document.getElementById(`tab-${tab}`);
+            if(tc) { tc.style.display='block'; tc.classList.add('active'); }
+        };
+
+        window.saveProfile = async function() {
+            const alertDiv = document.getElementById('profileAlert');
+            try {
+                const data = {
+                    nom:       (document.getElementById('editName')?.value||'').trim(),
+                    prenom:    (document.getElementById('editFirstName')?.value||'').trim(),
+                    email:     (document.getElementById('editEmail')?.value||'').trim(),
+                    telephone: (document.getElementById('editPhone')?.value||'').trim()
+                };
+                await API.auth.updateProfile(data);
+                if(alertDiv) alertDiv.innerHTML = '<div class="alert alert-success"><i class="fas fa-check"></i> Profil mis à jour avec succès !</div>';
+                showToast('Profil sauvegardé', 'success');
+                loadUserData();
+            } catch(err) {
+                if(alertDiv) alertDiv.innerHTML = `<div class="alert alert-error">${err.message||'Erreur'}</div>`;
+            }
+        };
+
+        window.changePassword = async function() {
+            const alertDiv = document.getElementById('passwordAlert');
+            const np = document.getElementById('newPassword')?.value || '';
+            const cp = document.getElementById('confirmPassword')?.value || '';
+            const curr = document.getElementById('currentPassword')?.value || '';
+            if (np !== cp) { if(alertDiv) alertDiv.innerHTML='<div class="alert alert-error">Les mots de passe ne correspondent pas</div>'; return; }
+            if (np.length < 6) { if(alertDiv) alertDiv.innerHTML='<div class="alert alert-error">Minimum 6 caractères requis</div>'; return; }
+            // Update password in localStorage
+            const users = JSON.parse(localStorage.getItem('sneakx_users')||'[]');
+            const user = getUser();
+            const idx = users.findIndex(u => u.email === user?.email);
+            if (idx > -1 && users[idx].password === curr) {
+                users[idx].password = np;
+                localStorage.setItem('sneakx_users', JSON.stringify(users));
+                if(alertDiv) alertDiv.innerHTML='<div class="alert alert-success"><i class="fas fa-check"></i> Mot de passe modifié !</div>';
+                ['currentPassword','newPassword','confirmPassword'].forEach(id => { const el=document.getElementById(id); if(el) el.value=''; });
+            } else {
+                if(alertDiv) alertDiv.innerHTML='<div class="alert alert-error">Mot de passe actuel incorrect</div>';
+            }
+        };
+
+        window.saveAccessibility = function() { showToast('Préférences sauvegardées', 'success'); };
+        window.addAddress = function() { showToast('Fonctionnalité bientôt disponible', 'info'); };
+        window.setMode = function() {};
+        window.toggleEco = function() {};
+    </script>
+</body>
+</html>

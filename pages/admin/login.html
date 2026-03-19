@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Accès Admin — SneakX</title>
+    <link rel="stylesheet" href="../../assets/css/admin.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body { display: flex; align-items: center; justify-content: center; min-height: 100vh; background: var(--bg); }
+        .login-box {
+            background: var(--bg3); border: 1px solid var(--border);
+            border-radius: 24px; padding: 48px 44px; max-width: 420px; width: 90%;
+            box-shadow: 0 32px 80px rgba(0,0,0,.5);
+            position: relative; overflow: hidden;
+        }
+        .login-box::before {
+            content: ''; position: absolute; top: -60px; right: -60px;
+            width: 200px; height: 200px;
+            background: radial-gradient(circle, rgba(255,92,0,.15), transparent 65%);
+            pointer-events: none;
+        }
+        .logo { font-family: 'Barlow Condensed', sans-serif; font-size: 28px; font-weight: 900; letter-spacing: 3px; text-transform: uppercase; margin-bottom: 8px; }
+        .logo span { color: var(--orange); }
+        .badge-admin { display: inline-flex; align-items: center; gap: 6px; background: rgba(255,92,0,.12); border: 1px solid var(--orange-border); color: var(--orange); padding: 4px 12px; border-radius: 20px; font-size: 11px; font-weight: 800; letter-spacing: 1px; text-transform: uppercase; margin-bottom: 32px; }
+        .form-group { margin-bottom: 18px; }
+        .form-label { display: block; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; color: var(--text2); margin-bottom: 8px; }
+        .form-input { width: 100%; background: var(--bg); border: 1px solid var(--border2); border-radius: 10px; padding: 13px 16px; color: var(--text); font-family: 'Barlow', sans-serif; font-size: 14px; outline: none; transition: border-color .2s; }
+        .form-input:focus { border-color: var(--orange); }
+        .form-input::placeholder { color: var(--text3); }
+        .btn-login { width: 100%; background: var(--orange); color: #fff; border: none; border-radius: 10px; padding: 14px; font-family: 'Barlow Condensed', sans-serif; font-size: 18px; font-weight: 900; letter-spacing: 1px; text-transform: uppercase; cursor: pointer; transition: all .2s; margin-top: 8px; }
+        .btn-login:hover { background: var(--orange-light); transform: translateY(-1px); }
+        .btn-login:disabled { opacity: .6; cursor: not-allowed; transform: none; }
+        .error-msg { background: rgba(239,68,68,.1); border: 1px solid rgba(239,68,68,.2); color: #ef4444; border-radius: 8px; padding: 10px 14px; font-size: 13px; margin-top: 12px; display: none; }
+        .hint-box { background: var(--bg4); border: 1px solid var(--border); border-radius: 10px; padding: 14px; margin-top: 20px; font-size: 12px; color: var(--text2); }
+        .hint-box strong { color: var(--text); }
+        .hint-box .cred { font-family: monospace; background: var(--bg); border: 1px solid var(--border); border-radius: 4px; padding: 2px 6px; color: var(--orange); }
+        .divider { display: flex; align-items: center; gap: 12px; margin: 20px 0; }
+        .divider::before, .divider::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+        .divider span { font-size: 11px; color: var(--text3); text-transform: uppercase; letter-spacing: 1px; }
+        .btn-quick { width: 100%; background: transparent; border: 1px solid var(--border2); color: var(--text2); border-radius: 10px; padding: 13px; font-family: 'Barlow', sans-serif; font-size: 13px; font-weight: 700; cursor: pointer; transition: all .2s; display: flex; align-items: center; justify-content: center; gap: 10px; }
+        .btn-quick:hover { border-color: var(--orange); color: var(--orange); }
+        .spinner { display: inline-block; width: 18px; height: 18px; border: 2px solid rgba(255,255,255,.3); border-top-color: #fff; border-radius: 50%; animation: spin .6s linear infinite; vertical-align: middle; margin-right: 8px; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+    </style>
+</head>
+<body>
+    <div class="login-box">
+        <div class="logo">Sneak<span>X</span></div>
+        <div class="badge-admin"><i class="fas fa-shield-alt"></i> Espace Administrateur</div>
+
+        <div class="form-group">
+            <label class="form-label">Email administrateur</label>
+            <input type="email" class="form-input" id="email" placeholder="admin@sneakx.com" value="admin@sneakx.com">
+        </div>
+        <div class="form-group">
+            <label class="form-label">Mot de passe</label>
+            <input type="password" class="form-input" id="password" placeholder="••••••••" value="Admin1234!" onkeydown="if(event.key==='Enter') login()">
+        </div>
+
+        <button class="btn-login" id="loginBtn" onclick="login()">
+            <i class="fas fa-lock"></i> Accéder au panneau admin
+        </button>
+
+        <div class="error-msg" id="errorMsg"></div>
+
+        <div class="divider"><span>ou</span></div>
+
+        <button class="btn-quick" onclick="quickAccess()">
+            <i class="fas fa-bolt" style="color:var(--orange)"></i>
+            Accès rapide (mode démo)
+        </button>
+
+        <div class="hint-box">
+            <div style="margin-bottom:6px"><i class="fas fa-info-circle" style="color:var(--orange);margin-right:5px"></i><strong>Identifiants démo</strong></div>
+            Email : <span class="cred">admin@ecommerce.com</span><br>
+            Mot de passe : <span class="cred">Motdepasse123</span>
+        </div>
+    </div>
+
+    <script type="module">
+        import API from '../../assets/js/modules/api.js';
+
+        // Si déjà connecté comme admin, rediriger directement
+        try {
+            const user = JSON.parse(localStorage.getItem('user') || 'null');
+            if (localStorage.getItem('access_token') && (user?.role === 'admin' || user?.role === 'ADMIN')) {
+                window.location.href = 'dashboard.html';
+            }
+        } catch(e) {}
+
+        function showError(msg) {
+            const el = document.getElementById('errorMsg');
+            el.textContent = msg;
+            el.style.display = 'block';
+        }
+
+        async function doLogin() {
+            const email    = document.getElementById('email').value.trim();
+            const password = document.getElementById('password').value;
+            const btn      = document.getElementById('loginBtn');
+
+            document.getElementById('errorMsg').style.display = 'none';
+
+            if (!email || !password) {
+                showError('Veuillez remplir tous les champs.');
+                return;
+            }
+
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Connexion...';
+
+            const res = await API.auth.login(email, password);
+
+            if (!res.success) {
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fas fa-lock"></i> Accéder au panneau admin';
+                showError(res.error || res.message || 'Email ou mot de passe incorrect.');
+                return;
+            }
+
+            if (res.user.role !== 'admin' && res.user.role !== 'ADMIN') {
+                // Still allow login but warn
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fas fa-lock"></i> Accéder au panneau admin';
+                showError('Ce compte n\'a pas les droits administrateur. Utilisez admin@sneakx.ci');
+                return;
+            }
+
+            btn.innerHTML = '<i class="fas fa-check"></i> Accès accordé !';
+            btn.style.background = '#10b981';
+            setTimeout(() => { window.location.href = 'dashboard.html'; }, 600);
+        }
+
+        function quickAccessDemo() {
+            const res = login('admin@sneakx.com', 'Admin1234!');
+            if (res.success) window.location.href = 'dashboard.html';
+        }
+
+        // Exposer pour les onclick HTML
+        window.login       = doLogin;
+        window.quickAccess = quickAccessDemo;
+    </script>
+</body>
+</html>

@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Mes Commandes — E-Commerce Intelligent</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="../assets/css/style.css"/>
+  <script>tailwind.config = { darkMode: 'class' }</script>
+</head>
+<body class="bg-slate-50 dark:bg-slate-900 min-h-screen">
+
+<nav class="navbar">
+  <a href="dashboard.html" class="flex items-center gap-2 font-bold text-slate-800 dark:text-white">← 🛍️ Boutique</a>
+  <h2 class="font-semibold text-slate-700 dark:text-slate-200">📦 Mes Commandes</h2>
+  <button id="btn-theme" class="btn btn-ghost text-xl">🌙</button>
+</nav>
+
+<main class="max-w-4xl mx-auto px-4 py-8 space-y-4">
+
+  <!-- Filtres statuts -->
+  <div class="flex flex-wrap gap-2">
+    <button data-status="" class="filter-btn btn btn-primary text-xs px-4 py-1.5">Toutes</button>
+    <button data-status="RECEIVED"    class="filter-btn btn btn-ghost text-xs px-3 py-1.5">Reçues</button>
+    <button data-status="PREPARING"   class="filter-btn btn btn-ghost text-xs px-3 py-1.5">En préparation</button>
+    <button data-status="DELIVERED"   class="filter-btn btn btn-ghost text-xs px-3 py-1.5">Livrées</button>
+    <button data-status="CANCELLED"   class="filter-btn btn btn-ghost text-xs px-3 py-1.5">Annulées</button>
+  </div>
+
+  <!-- Liste commandes -->
+  <div id="orders-list" class="space-y-4">
+    <div class="text-center text-slate-400 py-12">
+      <div class="spinner mx-auto mb-4"></div>
+      Chargement de vos commandes…
+    </div>
+  </div>
+</main>
+
+<!-- Modal Tracking -->
+<div id="tracking-modal" class="modal-backdrop hidden">
+  <div class="modal p-6 space-y-4 max-w-lg">
+    <div class="flex items-center justify-between">
+      <h3 class="font-bold text-slate-800 dark:text-white">📍 Suivi de commande</h3>
+      <button id="btn-close-tracking" class="btn btn-ghost text-xl">✕</button>
+    </div>
+    <p class="text-sm text-slate-400" id="tracking-order-num"></p>
+    <div id="tracking-steps" class="space-y-3"></div>
+  </div>
+</div>
+
+<div id="toast-container" class="fixed top-4 right-4 z-50 flex flex-col gap-2"></div>
+
+<script type="module">
+  import API from '../assets/js/modules/api.js';
+  const Commandes = API.commandes;
+  function formatCFA(v) { return new Intl.NumberFormat('fr-FR').format(v) + ' XOF'; }
+  function showToast(msg, type) {
+    let c = document.getElementById('toast-container'); 
+    if (!c) { c = document.createElement('div'); c.id='toast-container'; c.style.cssText='position:fixed;bottom:20px;right:20px;z-index:9999'; document.body.appendChild(c); }
+    const t = document.createElement('div'); t.style.cssText='background:#10b981;color:#fff;padding:12px 20px;border-radius:8px;margin:4px;font-size:13px'; t.textContent=msg; c.appendChild(t); setTimeout(()=>t.remove(),3000);
+  }
+  function requireAuth() { if (!localStorage.getItem('access_token')) { window.location.href = 'connexion.html'; return false; } return true; }
+
+  document.documentElement.setAttribute('data-theme', localStorage.getItem('sx_theme')||'dark');
+  if (!requireAuth()) throw new Error();
+
+  document.getElementById('btn-theme').addEventListener('click', () => {
+    const d = toggleTheme();
+    document.getElementById('btn-theme').textContent = d ? '☀️' : '🌙';
+  });
+
+  const STATUS_INFO = {
+    RECEIVED:    { label: 'Reçue',          icon: '📋', color: 'status-RECEIVED' },
+    PREPARING:   { label: 'En préparation', icon: '👨‍🍳', color: 'status-PREPARING' },
+    SHIPPED:     { label: 'Expédiée',       icon: '🚚', color: 'status-SHIPPED' },
+    IN_DELIVERY: { label: 'En livraison',   icon: '🛵', color: 'status-IN_DELIVERY' },
+    DELIVERED:   { label: 'Livrée',         icon: '✅', color: 'status-DELIVERED' },
+    CANCELLED:   { label: 'Annulée',        icon: '❌', color: 'status-CANCELLED' },
+    REFUNDED:    { label: 'Remboursée',     icon: '↩️', color: 'status-REFUNDED' },
+  };
+
+  let allOrders = [];
+
+  async function loadOrders() {
+    const res = await Commandes.liste();
+    allOrders = res.commandes || res.data || [] || res || [];
+    renderOrders(allOrders);
+  }
+
+  function renderOrders(orders) {
+    const list = document.getElementById('orders-list');
+    if (!orders.length) {
+      list.innerHTML = `<div class="card p-12 text-center text-slate-400">
+        <div class="text-5xl mb-3">📦</div>
+        <p class="font-semibold">Aucune commande trouvée</p>
+        <a href="dashboard.html" class="btn btn-primary mt-4">🛍 Découvrir les produits</a>
+      </div>`;
+      return;
+    }
+
+    list.innerHTML = orders.map(o => {
+      const st = STATUS_INFO[o.status] || { label: o.status, icon: '•', color: 'badge-muted' };
+      const items = (o.items || []).map(i => `${i.quantity}× ${i.product_name || 'Produit'}`).join(', ');
+      return `
+        <div class="card p-5 space-y-4">
+          <div class="flex items-start justify-between gap-4 flex-wrap">
+            <div class="space-y-1">
+              <div class="flex items-center gap-2">
+                <span class="text-lg">${st.icon}</span>
+                <span class="font-mono font-bold text-primary text-sm">${o.order_number || '#' + o.id}</span>
+                <span class="badge ${st.color} text-xs">${st.label}</span>
+              </div>
+              <p class="text-xs text-slate-400">${new Date(o.created_at).toLocaleDateString('fr-FR', {
+                day: 'numeric', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit'
+              })}</p>
+            </div>
+            <div class="text-right">
+              <p class="font-bold text-lg text-primary">${formatCFA(o.amount_ttc)}</p>
+              <p class="text-xs text-slate-400">${(o.items || []).length} article(s)</p>
+            </div>
+          </div>
+
+          ${items ? `<p class="text-sm text-slate-500 dark:text-slate-400 bg-slate-50 dark:bg-slate-700/50 rounded-lg px-3 py-2">${items}</p>` : ''}
+
+          <div class="flex gap-2">
+            <button class="btn btn-ghost text-sm flex-1 btn-track" data-id="${o.id}" data-num="${o.order_number}">
+              📍 Suivre
+            </button>
+            <button class="btn btn-ghost text-sm text-blue-500 btn-read-order" 
+                    data-txt="Commande ${o.order_number}, ${st.label}. ${items}. Total : ${Number(o.amount_ttc).toLocaleString('fr-FR')} francs CFA.">
+              🔊
+            </button>
+          </div>
+        </div>`;
+    }).join('');
+
+    document.querySelectorAll('.btn-track').forEach(btn => {
+      btn.addEventListener('click', () => openTracking(btn.dataset.id, btn.dataset.num));
+    });
+    document.querySelectorAll('.btn-read-order').forEach(btn => {
+      btn.addEventListener('click', () => speak(btn.dataset.txt));
+    });
+  }
+
+  // Filtres
+  document.querySelectorAll('.filter-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.filter-btn').forEach(b => {
+        b.classList.remove('btn-primary'); b.classList.add('btn-ghost');
+      });
+      btn.classList.add('btn-primary'); btn.classList.remove('btn-ghost');
+      const status = btn.dataset.status;
+      renderOrders(status ? allOrders.filter(o => o.status === status) : allOrders);
+    });
+  });
+
+  // Tracking
+  async function openTracking(id, num) {
+    try {
+      const res      = await Commandes.tracking(id);
+      const tracking = res.commandes || res.data || []?.tracking || [];
+      document.getElementById('tracking-order-num').textContent = `Commande : ${num}`;
+
+      const STEPS_ORDER = ['RECEIVED','PREPARING','SHIPPED','IN_DELIVERY','DELIVERED'];
+      const currentOrder = res.commandes || res.data || []?.order || {};
+      const currentIdx   = STEPS_ORDER.indexOf(currentOrder.status);
+
+      document.getElementById('tracking-steps').innerHTML = `
+        <div class="space-y-3">
+          ${STEPS_ORDER.map((s, i) => {
+            const st   = STATUS_INFO[s];
+            const done = i <= currentIdx;
+            const events = tracking.filter(t => t.status === s);
+            return `<div class="flex items-start gap-3">
+              <div class="w-8 h-8 rounded-full flex items-center justify-center text-sm flex-shrink-0
+                   ${done ? 'bg-green-100 dark:bg-green-900/30 text-green-600' : 'bg-slate-100 dark:bg-slate-700 text-slate-400'}">
+                ${done ? '✓' : st.icon}
+              </div>
+              <div class="flex-1 pb-3 ${i < STEPS_ORDER.length - 1 ? 'border-l-2 border-dashed ml-[-2.25rem] pl-10 border-slate-200 dark:border-slate-600' : ''}">
+                <p class="font-medium text-sm ${done ? 'text-slate-800 dark:text-white' : 'text-slate-400'}">${st.label}</p>
+                ${events.map(e => `<p class="text-xs text-slate-400">${new Date(e.event_date).toLocaleDateString('fr-FR')} — ${e.description || ''}</p>`).join('')}
+              </div>
+            </div>`;
+          }).join('')}
+        </div>`;
+
+      document.getElementById('tracking-modal').classList.remove('hidden');
+    } catch (e) { showToast(e.message, 'error'); }
+  }
+
+  document.getElementById('btn-close-tracking').addEventListener('click', () =>
+    document.getElementById('tracking-modal').classList.add('hidden'));
+
+  loadOrders();
+</script>
+</body>
+</html>

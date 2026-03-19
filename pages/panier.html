@@ -1,0 +1,215 @@
+<!-- Fichier: /frontend/pages/panier.html -->
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mon Panier — SneakX</title>
+    <link rel="stylesheet" href="../assets/css/design-system.css">
+    <link rel="stylesheet" href="../assets/css/accessibility.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .container { max-width: 1100px; margin: 0 auto; padding: 100px 60px 60px; }
+        .page-title { font-family: 'Barlow Condensed', sans-serif; font-size: 52px; font-weight: 900; text-transform: uppercase; letter-spacing: -2px; margin-bottom: 32px; }
+        .page-title span { color: var(--orange); }
+        .cart-layout { display: grid; grid-template-columns: 1fr 360px; gap: 28px; }
+        .cart-item { background: var(--bg3); border: 1px solid var(--border); border-radius: 16px; padding: 20px; display: grid; grid-template-columns: 90px 1fr auto; gap: 18px; align-items: center; margin-bottom: 12px; transition: border-color .2s, transform .2s; }
+        .cart-item:hover { border-color: var(--orange-border); transform: translateX(4px); }
+        .cart-img { width: 90px; height: 90px; border-radius: 12px; object-fit: cover; background: var(--bg4); }
+        .item-name { font-family: 'Barlow Condensed', sans-serif; font-size: 18px; font-weight: 800; color: var(--text); text-transform: uppercase; letter-spacing: -.5px; }
+        .item-brand { font-size: 11px; color: var(--text3); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 6px; }
+        .item-price { font-family: 'Barlow Condensed', sans-serif; font-size: 20px; font-weight: 900; color: var(--orange); }
+        .qty-ctrl { display: flex; align-items: center; gap: 10px; margin-top: 12px; }
+        .qty-btn { width: 30px; height: 30px; border-radius: 7px; border: 1px solid var(--border2); background: var(--bg4); color: var(--text); font-size: 14px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all .2s; }
+        .qty-btn:hover { border-color: var(--orange); color: var(--orange); }
+        .qty-btn:disabled { opacity:.3; cursor:not-allowed; }
+        .qty-val { font-weight: 700; font-size: 15px; min-width: 24px; text-align: center; color: var(--text); }
+        .item-actions { display: flex; flex-direction: column; align-items: flex-end; gap: 10px; }
+        .item-subtotal { font-family: 'Barlow Condensed', sans-serif; font-size: 22px; font-weight: 900; color: var(--text); white-space: nowrap; }
+        .remove-btn { background: transparent; border: 1px solid rgba(239,68,68,.3); color: #ef4444; padding: 7px 14px; border-radius: 8px; font-size: 11px; font-weight: 700; cursor: pointer; transition: all .2s; }
+        .remove-btn:hover { background: rgba(239,68,68,.1); }
+        .cart-summary { background: var(--bg3); border: 1px solid var(--border); border-radius: 16px; padding: 28px; position: sticky; top: 88px; height: fit-content; }
+        .summary-title { font-family: 'Barlow Condensed', sans-serif; font-size: 20px; font-weight: 800; text-transform: uppercase; margin-bottom: 20px; color: var(--text); }
+        .summary-row { display: flex; justify-content: space-between; font-size: 13px; color: var(--text2); margin-bottom: 10px; }
+        .summary-row.total { border-top: 1px solid var(--border); margin-top: 16px; padding-top: 16px; font-family: 'Barlow Condensed', sans-serif; font-size: 22px; font-weight: 900; color: var(--text); }
+        .summary-row.total span:last-child { color: var(--orange); }
+        .delivery-badge { background: rgba(16,185,129,.1); border: 1px solid rgba(16,185,129,.2); color: #10b981; border-radius: 8px; padding: 8px 12px; font-size: 11px; font-weight: 700; display: flex; align-items: center; gap: 8px; margin: 12px 0; }
+        .promo-row { display: flex; gap: 8px; margin-bottom: 16px; }
+        .promo-input { flex: 1; background: var(--bg); border: 1px solid var(--border2); border-radius: 8px; padding: 10px 14px; color: var(--text); font-family: 'Barlow', sans-serif; font-size: 13px; outline: none; }
+        .promo-input:focus { border-color: var(--orange); }
+        .promo-btn { background: var(--bg4); border: 1px solid var(--border2); color: var(--text2); padding: 10px 14px; border-radius: 8px; font-size: 12px; font-weight: 700; cursor: pointer; transition: all .2s; }
+        .promo-btn:hover { border-color: var(--orange); color: var(--orange); }
+        .wallet-chip { background: var(--bg4); border: 1px solid var(--border); border-radius: 10px; padding: 12px 16px; display: flex; align-items: center; gap: 10px; margin-bottom: 16px; }
+        .wallet-chip i { color: var(--orange); font-size: 18px; }
+        .wallet-chip-label { font-size: 10px; color: var(--text3); text-transform: uppercase; letter-spacing: 1px; }
+        .wallet-chip-val { font-family: 'Barlow Condensed', sans-serif; font-size: 18px; font-weight: 900; color: var(--text); }
+        .empty-cart { text-align: center; padding: 80px 20px; grid-column: 1/-1; }
+        .empty-cart i { font-size: 64px; color: var(--text3); display: block; margin-bottom: 20px; }
+        .empty-cart h2 { font-family: 'Barlow Condensed', sans-serif; font-size: 32px; font-weight: 900; text-transform: uppercase; }
+        .empty-cart p { color: var(--text2); font-size: 14px; margin-top: 8px; }
+        @media(max-width:900px){ .container{padding:80px 16px 40px} .cart-layout{grid-template-columns:1fr} .cart-summary{position:static} }
+        @media(max-width:600px){ .cart-item{grid-template-columns:70px 1fr;gap:12px} .item-actions{display:none} }
+    </style>
+</head>
+<body>
+    <div id="sx-header-placeholder"></div>
+    <div class="container">
+        <div class="page-title">Mon <span>Panier</span></div>
+        <div class="cart-layout" id="cartLayout">
+            <div style="grid-column:1/-1;display:flex;justify-content:center;padding:40px"><div class="sx-spinner"></div></div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { init, showToast } from '../assets/js/modules/sx-shared.js';
+        import API from '../assets/js/modules/api.js';
+        init('panier');
+        const layout = document.getElementById('cartLayout');
+        const fmt = v => new Intl.NumberFormat('fr-FR').format(Math.round(v));
+        let _cart = null;
+        let _promoApplied = null;
+
+        // ── Charger le panier ──────────────────────────────
+        async function loadCart() {
+            try {
+                const res = await API.panier.get();
+                // Normalize items
+                const items = (res.items || []).map(i => ({
+                    ...i,
+                    prix_effectif: i.prix_effectif || i.prix || i.price || 0,
+                    nom: i.nom || i.nom_produit || i.name || 'Produit',
+                    marque: i.marque || i.brand || '',
+                    quantite: i.quantite || i.quantity || 1,
+                    stock: i.stock || 99
+                }));
+                const sousTotal = items.reduce((t,i)=>t+(i.prix_effectif||0)*(i.quantite||1),0);
+                _cart = { items, sous_total: sousTotal, nb_articles: items.reduce((t,i)=>t+(i.quantite||1),0) };
+            } catch {
+                _cart = { items: [], sous_total:0, nb_articles:0 };
+            }
+            render();
+        }
+
+        function render() {
+            if (!_cart) return;
+            const items = _cart.items || [];
+            const sousTotal = _cart.sous_total || 0;
+            const frais = sousTotal >= 100000 ? 0 : (sousTotal > 0 ? 2500 : 0);
+            const remise = _promoApplied?.remise || 0;
+            const grandTotal = sousTotal - remise + frais;
+            const count = _cart.nb_articles || items.reduce((s,i) => s + i.quantite, 0);
+
+            if (!items.length) {
+                layout.innerHTML = `<div class="empty-cart">
+                    <i class="fas fa-shopping-cart"></i>
+                    <h2>Panier vide</h2>
+                    <p>Ajoutez des articles depuis le catalogue pour commencer.</p>
+                    <button class="sx-btn sx-btn-orange" style="margin-top:24px" onclick="window.location.href='catalogue.html'">
+                        <i class="fas fa-shopping-bag"></i> Voir le catalogue
+                    </button></div>`;
+                return;
+            }
+
+            layout.innerHTML = `
+            <div>
+                ${items.map(item => `
+                <div class="cart-item">
+                    <img class="cart-img" src="${item.image || 'https://via.placeholder.com/200'}"
+                         alt="${item.nom || item.nom_produit}" onerror="this.style.display='none'">
+                    <div>
+                        <div class="item-brand">${item.marque || ''}</div>
+                        <div class="item-name">${item.nom || item.nom_produit}</div>
+                        ${item.taille ? `<div style="font-size:11px;color:var(--text2);margin-top:2px">Taille: ${item.taille}${item.couleur?' · '+item.couleur:''}</div>` : ''}
+                        <div class="item-price">${fmt(item.prix_effectif)} XOF</div>
+                        <div class="qty-ctrl">
+                            <button class="qty-btn" onclick="changeQty(${item.id},${item.quantite - 1})"><i class="fas fa-minus" style="font-size:10px"></i></button>
+                            <span class="qty-val">${item.quantite}</span>
+                            <button class="qty-btn" onclick="changeQty(${item.id},${item.quantite + 1})" ${item.quantite >= item.stock ? 'disabled' : ''}>
+                                <i class="fas fa-plus" style="font-size:10px"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="item-actions">
+                        <div class="item-subtotal">${fmt(item.prix_effectif * item.quantite)} XOF</div>
+                        <button class="remove-btn" onclick="removeItem(${item.id})"><i class="fas fa-trash"></i> Retirer</button>
+                    </div>
+                </div>`).join('')}
+                <div style="display:flex;gap:10px;margin-top:8px;flex-wrap:wrap">
+                    <button class="sx-btn sx-btn-ghost" onclick="window.location.href='catalogue.html'"><i class="fas fa-arrow-left"></i> Continuer</button>
+                    <button class="sx-btn sx-btn-ghost" style="color:#ef4444;border-color:rgba(239,68,68,.3)" onclick="clearCart()"><i class="fas fa-trash"></i> Vider</button>
+                </div>
+            </div>
+            <div class="cart-summary">
+                <div class="summary-title"><i class="fas fa-receipt" style="color:var(--orange);margin-right:8px"></i>Récapitulatif</div>
+                <div class="summary-row"><span>${count} article${count>1?'s':''}</span><span>${fmt(sousTotal)} XOF</span></div>
+                <div class="summary-row"><span>Livraison</span><span style="color:${frais===0?'#10b981':'inherit'}">${frais===0?'GRATUITE':fmt(frais)+' XOF'}</span></div>
+                ${frais===0 ? `<div class="delivery-badge"><i class="fas fa-truck"></i> Livraison gratuite !</div>`
+                    : `<div style="background:var(--bg4);border-radius:8px;padding:8px 12px;font-size:11px;color:var(--text2);margin-bottom:12px">
+                        <i class="fas fa-info-circle" style="color:var(--orange);margin-right:5px"></i>Plus que ${fmt(100000-sousTotal)} XOF pour la livraison gratuite</div>`}
+                ${remise > 0 ? `<div class="summary-row" style="color:#10b981"><span>Remise (${_promoApplied.code})</span><span>- ${fmt(remise)} XOF</span></div>` : ''}
+                <div class="promo-row">
+                    <input type="text" class="promo-input" id="promoCode" placeholder="Code promo (ex: SNEAKX10)" value="${_promoApplied?.code || ''}">
+                    <button class="promo-btn" onclick="applyPromo()"><i class="fas fa-tag"></i></button>
+                </div>
+                <div class="summary-row total"><span>Total</span><span>${fmt(grandTotal)} XOF</span></div>
+                <button class="sx-btn sx-btn-orange" style="width:100%;justify-content:center;margin-top:20px;padding:14px;font-size:13px" onclick="window.location.href='commande.html'">
+                    <i class="fas fa-lock"></i> Passer la commande
+                </button>
+                <div style="display:flex;justify-content:center;gap:16px;margin-top:14px">
+                    <span style="font-size:10px;color:var(--text3)"><i class="fas fa-shield-alt" style="color:var(--orange);margin-right:4px"></i>Sécurisé</span>
+                    <span style="font-size:10px;color:var(--text3)"><i class="fas fa-undo" style="color:var(--orange);margin-right:4px"></i>Retours gratuits</span>
+                    <span style="font-size:10px;color:var(--text3)"><i class="fas fa-headset" style="color:var(--orange);margin-right:4px"></i>Support 24/7</span>
+                </div>
+            </div>`;
+
+            // Update badge count in header
+            const badge = document.getElementById('cart-count');
+            if (badge) { badge.textContent = count; badge.style.display = count > 0 ? 'flex' : 'none'; }
+        }
+
+        window.changeQty = async (cartId, qty) => {
+            if (qty < 1) { removeItem(cartId); return; }
+            try {
+                await API.panier.update(cartId, qty);
+                await loadCart();
+            } catch { showToast('Erreur de mise à jour', 'error'); }
+        };
+
+        window.removeItem = async (cartId) => {
+            try {
+                await API.panier.remove(cartId);
+                showToast('Article retiré', 'info');
+                await loadCart();
+            } catch { showToast('Erreur', 'error'); }
+        };
+
+        window.clearCart = async () => {
+            if (!confirm('Vider le panier ?')) return;
+            try {
+                await API.panier.clear();
+                await loadCart();
+            } catch { showToast('Erreur', 'error'); }
+        };
+
+        window.applyPromo = async () => {
+            const code = document.getElementById('promoCode')?.value?.trim();
+            if (!code) { showToast('Entrez un code promo', 'error'); return; }
+            try {
+                const res = await API.panier.promo(code, _cart?.sous_total || 0);
+                if (res?.success) {
+                    _promoApplied = { code: res.code || code.toUpperCase(), remise: res.discount || res.remise || 0 };
+                    showToast(`Code ${_promoApplied.code} appliqué ! - ${fmt(_promoApplied.remise)} XOF`, 'success');
+                    render();
+                } else {
+                    showToast(res?.error || 'Code promo invalide', 'error');
+                }
+            } catch(err) {
+                console.error(err);
+                showToast('Erreur lors de l'application du code', 'error');
+            }
+        };
+
+        loadCart();
+    </script>
+</body>
+</html>

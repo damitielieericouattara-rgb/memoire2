@@ -1,0 +1,573 @@
+<!-- Fichier: /frontend/pages/commande.html -->
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Finaliser ma commande — SneakX</title>
+    <link rel="stylesheet" href="../assets/css/design-system.css">
+    <link rel="stylesheet" href="../assets/css/accessibility.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body { font-family: 'Barlow', sans-serif; }
+        .container { max-width: 960px; margin: 0 auto; padding: 100px 60px 60px; }
+        .page-title { font-family: 'Barlow Condensed', sans-serif; font-size: 48px; font-weight: 900; text-transform: uppercase; letter-spacing: -2px; margin-bottom: 32px; }
+        .page-title span { color: var(--orange); }
+        .order-grid { display: grid; grid-template-columns: 1fr 360px; gap: 28px; }
+        
+        /* Steps */
+        .steps-bar { display: flex; align-items: center; margin-bottom: 32px; }
+        .step { display: flex; align-items: center; gap: 10px; flex: 1; }
+        .step-num { width: 32px; height: 32px; border-radius: 50%; border: 2px solid var(--border2); background: var(--bg4); color: var(--text3); font-weight: 800; font-size: 13px; display: flex; align-items: center; justify-content: center; transition: all .3s; flex-shrink:0; }
+        .step-num.active { border-color: var(--orange); background: var(--orange); color: #fff; }
+        .step-num.done { border-color: var(--success); background: var(--success); color: #fff; }
+        .step-label { font-size: 12px; font-weight: 700; color: var(--text3); text-transform: uppercase; letter-spacing: .8px; transition: color .3s; }
+        .step-label.active { color: var(--orange); }
+        .step-label.done { color: var(--success); }
+        .step-line { flex: 1; height: 2px; background: var(--border2); margin: 0 8px; transition: background .3s; }
+        .step-line.done { background: var(--success); }
+
+        /* Cards */
+        .card { background: var(--bg3); border: 1px solid var(--border); border-radius: 16px; padding: 24px; margin-bottom: 20px; }
+        .card-title { font-family: 'Barlow Condensed', sans-serif; font-size: 18px; font-weight: 800; text-transform: uppercase; margin-bottom: 20px; display: flex; align-items: center; gap: 10px; }
+        .card-title i { color: var(--orange); }
+
+        /* Form */
+        .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+        .form-group { display: flex; flex-direction: column; gap: 6px; }
+        .form-group.full { grid-column: 1/-1; }
+        .form-label { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; color: var(--text2); }
+        .form-input, .form-select, .form-textarea { background: var(--bg); border: 1px solid var(--border2); border-radius: 8px; padding: 11px 14px; color: var(--text); font-family: 'Barlow', sans-serif; font-size: 13px; outline: none; transition: border-color .2s; width: 100%; }
+        .form-input:focus, .form-select:focus, .form-textarea:focus { border-color: var(--orange); }
+        .form-input::placeholder, .form-textarea::placeholder { color: var(--text3); }
+        .form-textarea { resize: none; }
+
+        /* Payment methods */
+        .pay-methods { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 20px; }
+        .pay-card { background: var(--bg4); border: 2px solid var(--border); border-radius: 12px; padding: 16px; cursor: pointer; transition: all .2s; display: flex; align-items: center; gap: 12px; }
+        .pay-card:hover { border-color: var(--border2); }
+        .pay-card.selected { border-color: var(--orange); background: var(--orange-dim); }
+        .pay-icon { width: 40px; height: 40px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 18px; flex-shrink: 0; }
+        .pay-name { font-size: 13px; font-weight: 700; color: var(--text); }
+        .pay-sub { font-size: 10px; color: var(--text2); margin-top: 2px; }
+
+        /* Wallet pay section */
+        .wallet-pay { background: linear-gradient(135deg, rgba(255,92,0,.08), rgba(255,140,0,.05)); border: 1px solid var(--orange-border); border-radius: 12px; padding: 18px; margin-bottom: 16px; }
+        .wallet-balance-big { font-family: 'Barlow Condensed', sans-serif; font-size: 32px; font-weight: 900; color: var(--orange); }
+        .balance-label { font-size: 11px; color: var(--text3); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 4px; }
+
+        /* Mobile money form */
+        .mobile-form { background: var(--bg4); border-radius: 10px; padding: 16px; margin-bottom: 16px; }
+        .network-tabs { display: flex; gap: 8px; margin-bottom: 14px; }
+        .net-tab { flex: 1; padding: 8px; border-radius: 8px; border: 1px solid var(--border2); background: var(--bg3); color: var(--text2); font-size: 11px; font-weight: 700; cursor: pointer; text-align: center; transition: all .2s; }
+        .net-tab.active { background: var(--orange); border-color: var(--orange); color: #fff; }
+
+        /* Card form */
+        .card-form { background: var(--bg4); border-radius: 10px; padding: 16px; margin-bottom: 16px; }
+        .card-number-input { font-family: 'Courier New', monospace; letter-spacing: 3px; }
+
+        /* Order summary */
+        .order-summary { background: var(--bg3); border: 1px solid var(--border); border-radius: 16px; padding: 24px; position: sticky; top: 88px; height: fit-content; }
+        .os-title { font-family: 'Barlow Condensed', sans-serif; font-size: 18px; font-weight: 800; text-transform: uppercase; margin-bottom: 16px; }
+        .os-item { display: flex; align-items: center; gap: 12px; padding: 10px 0; border-bottom: 1px solid var(--border); }
+        .os-item:last-of-type { border-bottom: none; }
+        .os-img { width: 48px; height: 48px; border-radius: 8px; object-fit: cover; background: var(--bg4); flex-shrink: 0; }
+        .os-name { font-size: 12px; font-weight: 700; color: var(--text); flex: 1; }
+        .os-qty { font-size: 11px; color: var(--text3); }
+        .os-price { font-family: 'Barlow Condensed', sans-serif; font-weight: 800; color: var(--orange); font-size: 15px; }
+        .os-row { display: flex; justify-content: space-between; font-size: 13px; color: var(--text2); margin: 8px 0; }
+        .os-total { display: flex; justify-content: space-between; border-top: 1px solid var(--border); padding-top: 14px; margin-top: 8px; font-family: 'Barlow Condensed', sans-serif; font-size: 22px; font-weight: 900; }
+        .os-total span:last-child { color: var(--orange); }
+
+        /* Payment modal / overlay */
+        .pay-overlay { position: fixed; inset: 0; background: rgba(0,0,0,.85); display: none; align-items: center; justify-content: center; z-index: 1000; padding: 20px; }
+        .pay-overlay.open { display: flex; }
+        .pay-modal { background: var(--bg3); border: 1px solid var(--border); border-radius: 20px; padding: 40px; max-width: 460px; width: 100%; position: relative; }
+        .pay-modal-title { font-family: 'Barlow Condensed', sans-serif; font-size: 28px; font-weight: 900; text-transform: uppercase; margin-bottom: 8px; }
+
+        /* Progress animation */
+        .progress-ring { width: 80px; height: 80px; margin: 20px auto; }
+        .progress-ring circle { fill: none; stroke: var(--border2); stroke-width: 4; }
+        .progress-ring circle.progress { stroke: var(--orange); stroke-dasharray: 220; stroke-dashoffset: 220; stroke-linecap: round; transition: stroke-dashoffset 3s linear; }
+        .progress-ring.done circle.progress { stroke: var(--success); stroke-dashoffset: 0; }
+
+        /* Success animation */
+        @keyframes checkmark { 0%{transform:scale(0) rotate(-45deg);opacity:0} 60%{transform:scale(1.2) rotate(0);} 100%{transform:scale(1) rotate(0);opacity:1} }
+        .success-check { font-size: 60px; color: var(--success); animation: checkmark .5s ease forwards; display: block; text-align: center; margin: 20px 0; }
+
+        @media(max-width:900px){ .container{padding:80px 16px 40px} .order-grid{grid-template-columns:1fr} .order-summary{position:static} .form-grid{grid-template-columns:1fr} .pay-methods{grid-template-columns:1fr} }
+    </style>
+</head>
+<body>
+    <div id="sx-header-placeholder"></div>
+
+    <div class="container">
+        <div class="page-title"><i class="fas fa-lock" style="color:var(--orange);font-size:36px;vertical-align:middle;margin-right:12px"></i>Finaliser ma <span>commande</span></div>
+
+        <!-- Steps -->
+        <div class="steps-bar">
+            <div class="step">
+                <div class="step-num done" id="step1-num"><i class="fas fa-check" style="font-size:11px"></i></div>
+                <span class="step-label done">Panier</span>
+            </div>
+            <div class="step-line" id="line1"></div>
+            <div class="step">
+                <div class="step-num active" id="step2-num">2</div>
+                <span class="step-label active">Livraison</span>
+            </div>
+            <div class="step-line" id="line2"></div>
+            <div class="step">
+                <div class="step-num" id="step3-num">3</div>
+                <span class="step-label" id="step3-label">Paiement</span>
+            </div>
+        </div>
+
+        <div class="order-grid">
+            <!-- LEFT -->
+            <div>
+                <!-- Address -->
+                <div class="card">
+                    <div class="card-title"><i class="fas fa-map-marker-alt"></i> Adresse de livraison</div>
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label class="form-label">Prénom</label>
+                            <input type="text" class="form-input" id="firstName" placeholder="Konan" value="">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Nom</label>
+                            <input type="text" class="form-input" id="lastName" placeholder="Koffi" value="">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Téléphone</label>
+                            <input type="tel" class="form-input" id="phone" placeholder="+225 07 00 00 00 00">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Quartier / Zone</label>
+                            <select class="form-select" id="zone">
+                                <option value="Cocody">Cocody</option>
+                                <option value="Plateau">Plateau</option>
+                                <option value="Marcory">Marcory</option>
+                                <option value="Yopougon">Yopougon</option>
+                                <option value="Treichville">Treichville</option>
+                                <option value="Adjamé">Adjamé</option>
+                                <option value="Abobo">Abobo</option>
+                                <option value="Bingerville">Bingerville</option>
+                                <option value="Port-Bouët">Port-Bouët</option>
+                            </select>
+                        </div>
+                        <div class="form-group full">
+                            <label class="form-label">Adresse précise</label>
+                            <input type="text" class="form-input" id="address" placeholder="Ex: Rue des Jardins, Cité Bonoumin, apt. 12">
+                        </div>
+                        <div class="form-group full">
+                            <label class="form-label">Instructions (optionnel)</label>
+                            <textarea class="form-textarea" id="notes" rows="2" placeholder="Ex: Appeler à l'arrivée, portail blanc..."></textarea>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Payment -->
+                <div class="card">
+                    <div class="card-title"><i class="fas fa-credit-card"></i> Mode de paiement</div>
+
+                    <div class="pay-methods">
+                        <div class="pay-card selected" onclick="selectPay('wallet', this)">
+                            <div class="pay-icon" style="background:rgba(255,92,0,.15);color:var(--orange)"><i class="fas fa-wallet"></i></div>
+                            <div><div class="pay-name">Wallet SneakX</div><div class="pay-sub" id="walletBalanceSub">Solde : chargement...</div></div>
+                        </div>
+                        <div class="pay-card" onclick="selectPay('mobile', this)">
+                            <div class="pay-icon" style="background:rgba(245,158,11,.15);color:#f59e0b"><i class="fas fa-mobile-alt"></i></div>
+                            <div><div class="pay-name">Mobile Money</div><div class="pay-sub">Orange / MTN / Moov</div></div>
+                        </div>
+                        <div class="pay-card" onclick="selectPay('card', this)">
+                            <div class="pay-icon" style="background:rgba(59,130,246,.15);color:#3b82f6"><i class="fas fa-credit-card"></i></div>
+                            <div><div class="pay-name">Carte bancaire</div><div class="pay-sub">Visa / Mastercard</div></div>
+                        </div>
+                        <div class="pay-card" onclick="selectPay('cash', this)">
+                            <div class="pay-icon" style="background:rgba(16,185,129,.15);color:#10b981"><i class="fas fa-money-bill-wave"></i></div>
+                            <div><div class="pay-name">Paiement à la livraison</div><div class="pay-sub">Cash uniquement</div></div>
+                        </div>
+                    </div>
+
+                    <!-- Wallet section -->
+                    <div id="walletSection">
+                        <div class="wallet-pay">
+                            <div class="balance-label">Solde disponible</div>
+                            <div class="wallet-balance-big" id="walletBalanceBig">0 XOF</div>
+                            <div id="walletStatus" style="margin-top:8px;font-size:12px;color:var(--text2)"></div>
+                        </div>
+                    </div>
+
+                    <!-- Mobile Money section -->
+                    <div id="mobileSection" style="display:none">
+                        <div class="mobile-form">
+                            <div class="network-tabs">
+                                <div class="net-tab active" onclick="selectNet('Orange', this)">🟠 Orange Money</div>
+                                <div class="net-tab" onclick="selectNet('MTN', this)">🟡 MTN MoMo</div>
+                                <div class="net-tab" onclick="selectNet('Moov', this)">🔵 Moov Money</div>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Numéro <span id="networkLabel">Orange</span></label>
+                                <input type="tel" class="form-input" id="mobileNum" placeholder="+225 07 00 00 00 00">
+                            </div>
+                            <div style="margin-top:10px;font-size:11px;color:var(--text2);background:var(--bg3);border-radius:8px;padding:10px">
+                                <i class="fas fa-info-circle" style="color:var(--orange);margin-right:5px"></i>
+                                Vous recevrez une notification USSD pour confirmer le paiement de <strong id="mobileAmount" style="color:var(--orange)">0 XOF</strong>.
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Card section -->
+                    <div id="cardSection" style="display:none">
+                        <div class="card-form">
+                            <div class="form-grid">
+                                <div class="form-group full">
+                                    <label class="form-label">Numéro de carte</label>
+                                    <input type="text" class="form-input card-number-input" id="cardNum" placeholder="0000 0000 0000 0000" maxlength="19" oninput="formatCard(this)">
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">Expiration</label>
+                                    <input type="text" class="form-input" id="cardExp" placeholder="MM/AA" maxlength="5" oninput="formatExp(this)">
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">CVV</label>
+                                    <input type="password" class="form-input" id="cardCvv" placeholder="•••" maxlength="3">
+                                </div>
+                                <div class="form-group full">
+                                    <label class="form-label">Nom sur la carte</label>
+                                    <input type="text" class="form-input" id="cardName" placeholder="KONAN KOFFI">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Cash section -->
+                    <div id="cashSection" style="display:none">
+                        <div style="background:rgba(16,185,129,.08);border:1px solid rgba(16,185,129,.2);border-radius:10px;padding:14px;font-size:13px;color:var(--text2)">
+                            <i class="fas fa-check-circle" style="color:#10b981;margin-right:8px"></i>
+                            Préparez le montant exact en espèces. Le livreur ne dispose pas toujours de monnaie.
+                        </div>
+                    </div>
+                </div>
+
+                <button class="sx-btn sx-btn-orange" style="width:100%;justify-content:center;padding:16px;font-size:14px;font-family:'Barlow Condensed',sans-serif;letter-spacing:1px;font-weight:900" onclick="placeOrder()">
+                    <i class="fas fa-lock"></i> CONFIRMER ET PAYER
+                </button>
+            </div>
+
+            <!-- RIGHT: Summary -->
+            <div class="order-summary">
+                <div class="os-title"><i class="fas fa-receipt" style="color:var(--orange);margin-right:8px"></i>Votre commande</div>
+                <div id="osSummary"><div style="text-align:center;padding:20px"><div class="sx-spinner" style="margin:auto"></div></div></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Payment processing overlay -->
+    <div class="pay-overlay" id="payOverlay">
+        <div class="pay-modal" id="payModal">
+            <div id="payModalContent"><!-- dynamic --></div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { init, showToast, requireAuth } from '../assets/js/modules/sx-shared.js';
+        import API from '../assets/js/modules/api.js';
+        let MapModule = null; try { MapModule = (await import('../assets/js/modules/maps.js')).default; } catch(e) { console.warn('Maps module not available', e); }
+        init('commande');
+        requireAuth();
+
+        const fmt = v => new Intl.NumberFormat('fr-FR').format(Math.round(v)) + ' XOF';
+        const FRAIS_LIVRAISON = 2500;
+        const LIVRAISON_GRATUITE_MIN = 100000;
+
+        let payMethod = 'livraison';
+        let mobileNetwork = 'Orange';
+        let cartData = null;
+        let gpsPosition = null;   // { lat, lng, adresse }
+        let promoApplied = null;  // { code, remise }
+        let mapInstance = null;
+
+        // ── Charger le panier ─────────────────────────────
+        async function load() {
+            try {
+                const res = await API.panier.get();
+                // Normalize cart items
+                const items = (res.items||[]).map(i => ({
+                    ...i,
+                    nom: i.nom||i.name||'Produit',
+                    prix_effectif: i.prix_effectif||i.prix||i.price||0,
+                    quantite: i.quantite||i.quantity||1,
+                    taille: i.taille||'',
+                    couleur: i.couleur||'',
+                    image: i.image||i.image_url||'https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=100&q=70'
+                }));
+                const sousTotal = items.reduce((t,i) => t + i.prix_effectif * i.quantite, 0);
+                cartData = { items, sous_total: sousTotal, nb_articles: items.reduce((t,i)=>t+i.quantite,0) };
+                if (!items.length) {
+                    window.location.href = 'panier.html';
+                    return;
+                }
+                renderSummary();
+                initDeliveryMap();
+            } catch(e) {
+                console.error(e);
+                window.location.href = 'panier.html';
+            }
+        }
+
+        function renderSummary() {
+            if (!cartData) return;
+            const items = cartData.items || [];
+            const sousTotal = cartData.sous_total || 0;
+            const frais = cartData.frais_livraison ?? (sousTotal >= LIVRAISON_GRATUITE_MIN ? 0 : FRAIS_LIVRAISON);
+            const remise = promoApplied?.remise || 0;
+            const grandTotal = sousTotal - remise + frais;
+
+            try {
+                const w = JSON.parse(localStorage.getItem('wallet')||'{"balance":0}');
+                const bal = (w.balance||0).toLocaleString('fr-FR') + ' XOF';
+                const subEl = document.getElementById('walletBalanceSub');
+                const bigEl = document.getElementById('walletBalanceBig');
+                if(subEl) subEl.textContent = 'Solde : ' + bal;
+                if(bigEl) bigEl.textContent = bal;
+            } catch(e) {}
+            document.getElementById('mobileAmount').textContent = fmt(grandTotal);
+
+            document.getElementById('osSummary').innerHTML = `
+                ${items.map(i => `<div class="os-item">
+                    <img class="os-img" src="${i.image || 'https://via.placeholder.com/48'}" onerror="this.style.display='none'">
+                    <div class="os-name">${i.nom || i.nom_produit}<br><small style="color:var(--text3)">${i.taille ? 'T.'+i.taille : ''}${i.couleur ? ' · '+i.couleur : ''}</small></div>
+                    <div style="text-align:right"><div class="os-price">${fmt(i.prix_effectif * i.quantite)}</div><div class="os-qty">×${i.quantite}</div></div>
+                </div>`).join('')}
+                <div style="height:1px;background:var(--border);margin:12px 0"></div>
+                <div class="os-row"><span>Sous-total</span><span>${fmt(sousTotal)}</span></div>
+                <div class="os-row"><span>Livraison</span><span style="color:${frais===0?'#10b981':'inherit'}">${frais === 0 ? '✓ Gratuite' : fmt(frais)}</span></div>
+                ${remise > 0 ? `<div class="os-row"><span>Remise (${promoApplied.code})</span><span style="color:#10b981">- ${fmt(remise)}</span></div>` : ''}
+                <div class="os-total"><span>Total</span><span>${fmt(grandTotal)}</span></div>
+                <div style="margin-top:16px;font-size:11px;color:var(--text3);text-align:center">
+                    <i class="fas fa-shield-alt" style="color:var(--orange);margin-right:5px"></i>Paiement 100% sécurisé
+                </div>`;
+        }
+
+        // ── Carte Leaflet livraison ───────────────────────
+        async function initDeliveryMap() {
+            if (!MapModule) return; // Maps not available
+            try {
+                // Créer div map si pas présent
+                const addr = document.getElementById('address');
+                if (addr) {
+                    let mapDiv = document.getElementById('delivery-map');
+                    if (!mapDiv) {
+                        mapDiv = document.createElement('div');
+                        mapDiv.id = 'delivery-map';
+                        mapDiv.style.cssText = 'height:300px;border-radius:12px;overflow:hidden;margin-top:16px;border:1px solid var(--border)';
+                        const card = addr.closest('.card') || addr.parentElement;
+                        if(card) card.appendChild(mapDiv);
+                    }
+                }
+                if (typeof MapModule.initDeliveryMap === 'function') {
+                    mapInstance = await MapModule.initDeliveryMap('delivery-map', (pos) => {
+                        gpsPosition = pos;
+                        const addrInput = document.getElementById('address');
+                        if (addrInput && pos.adresse) addrInput.value = pos.adresse;
+                    });
+                }
+            } catch(e) { console.warn('Map init error:', e); }
+        }
+
+        // ── Sélection méthode de paiement ────────────────
+        window.selectPay = function(method, el) {
+            payMethod = method;
+            document.querySelectorAll('.pay-card').forEach(c => c.classList.remove('selected'));
+            el.classList.add('selected');
+            document.getElementById('walletSection').style.display = method === 'wallet' ? 'block' : 'none';
+            document.getElementById('mobileSection').style.display = method === 'mobile' ? 'block' : 'none';
+            document.getElementById('cardSection').style.display   = method === 'card'   ? 'block' : 'none';
+            document.getElementById('cashSection').style.display   = method === 'cash'   ? 'block' : 'none';
+        };
+
+        window.selectNet = function(net, el) {
+            mobileNetwork = net;
+            document.querySelectorAll('.net-tab').forEach(t => t.classList.remove('active'));
+            el.classList.add('active');
+            document.getElementById('networkLabel').textContent = net;
+        };
+
+        window.formatCard = function(el) {
+            let v = el.value.replace(/\D/g, '').slice(0, 16);
+            el.value = v.replace(/(.{4})/g, '$1 ').trim();
+        };
+        window.formatExp = function(el) {
+            let v = el.value.replace(/\D/g, '');
+            if (v.length >= 2) v = v.slice(0,2) + '/' + v.slice(2,4);
+            el.value = v;
+        };
+
+        // ── Code promo ────────────────────────────────────
+        window.applyPromo = async function() {
+            const code  = document.getElementById('promoCode')?.value?.trim();
+            if (!code) { showToast('Entrez un code promo', 'error'); return; }
+            const sousTotal = cartData?.sous_total || 0;
+            try {
+                const res = await API.panier.promo(code, sousTotal);
+                if (res?.success) {
+                    promoApplied = { code: res.code, remise: res.remise };
+                    showToast(`Code ${code} appliqué ! - ${fmt(res.remise)}`, 'success');
+                    renderSummary();
+                } else {
+                    showToast(res?.error || 'Code invalide', 'error');
+                }
+            } catch {
+                showToast('Impossible de vérifier le code promo', 'error');
+            }
+        };
+
+        // ── Passer la commande ────────────────────────────
+        window.placeOrder = async function() {
+            const firstName = document.getElementById('firstName').value.trim();
+            const lastName  = document.getElementById('lastName').value.trim();
+            const phone     = document.getElementById('phone').value.trim();
+            const zone      = document.getElementById('zone').value;
+            const address   = document.getElementById('address').value.trim();
+
+            if (!firstName || !lastName) { showToast('Veuillez renseigner votre nom et prénom', 'error'); return; }
+            if (!phone)  { showToast('Veuillez renseigner votre téléphone', 'error'); return; }
+            if (!address){ showToast('Veuillez renseigner votre adresse précise', 'error'); return; }
+            if (payMethod === 'mobile' && !document.getElementById('mobileNum').value.trim()) {
+                showToast('Veuillez entrer votre numéro Mobile Money', 'error'); return;
+            }
+            if (payMethod === 'card') {
+                const num = document.getElementById('cardNum').value.replace(/\s/g,'');
+                if (num.length < 16)     { showToast('Numéro de carte invalide', 'error'); return; }
+                if (!document.getElementById('cardExp').value) { showToast('Date expiration requise', 'error'); return; }
+                if (!document.getElementById('cardCvv').value) { showToast('CVV requis', 'error'); return; }
+            }
+
+            const sousTotal   = cartData?.sous_total || 0;
+            const frais       = cartData?.frais_livraison ?? (sousTotal >= LIVRAISON_GRATUITE_MIN ? 0 : FRAIS_LIVRAISON);
+            const remise      = promoApplied?.remise || 0;
+            const grandTotal  = sousTotal - remise + frais;
+
+            // Mapper la méthode
+            const methodMap = { wallet:'livraison', mobile: mobileNetwork === 'Orange' ? 'orange_money' : mobileNetwork === 'MTN' ? 'mtn_momo' : 'moov_money', card:'carte_bancaire', cash:'livraison' };
+            const phpMethod = methodMap[payMethod] || 'livraison';
+
+            showPaymentModal(phpMethod, grandTotal, { firstName, lastName, phone, zone, address });
+        };
+
+        function showPaymentModal(phpMethod, amount, addr) {
+            const overlay = document.getElementById('payOverlay');
+            const modal   = document.getElementById('payModalContent');
+            overlay.classList.add('open');
+
+            const icons = {
+                wave:'fa-wave-square', orange_money:'fa-mobile-alt', mtn_momo:'fa-mobile-alt',
+                moov_money:'fa-mobile-alt', carte_bancaire:'fa-credit-card', livraison:'fa-truck'
+            };
+            const labels = {
+                wave:'Wave CI', orange_money:'Orange Money', mtn_momo:'MTN MoMo',
+                moov_money:'Moov Money', carte_bancaire:'Carte Bancaire', livraison:'Paiement à la livraison'
+            };
+
+            modal.innerHTML = `
+                <div style="text-align:center">
+                    <div style="width:60px;height:60px;border-radius:16px;background:var(--orange-dim);margin:0 auto 16px;display:flex;align-items:center;justify-content:center;font-size:26px;color:var(--orange)">
+                        <i class="fas ${icons[phpMethod] || 'fa-lock'}"></i>
+                    </div>
+                    <div class="pay-modal-title">Traitement en cours</div>
+                    <div style="color:var(--text2);font-size:13px;margin-bottom:4px">${labels[phpMethod]}</div>
+                    <div style="font-family:'Barlow Condensed',sans-serif;font-size:32px;font-weight:900;color:var(--orange);margin-bottom:20px">${fmt(amount)}</div>
+                    <svg class="progress-ring" viewBox="0 0 80 80" style="display:block;margin:0 auto 20px">
+                        <circle cx="40" cy="40" r="35"/>
+                        <circle cx="40" cy="40" r="35" class="progress" id="progressRing" style="transform:rotate(-90deg);transform-origin:50% 50%"/>
+                    </svg>
+                    <div id="payStatus" style="color:var(--text2);font-size:13px">Connexion sécurisée...</div>
+                </div>`;
+
+            const steps = phpMethod === 'livraison'
+                ? ['Enregistrement de la commande...', 'Confirmation adresse...', 'Commande confirmée !']
+                : ['Connexion au réseau...', 'Vérification...', 'En attente de confirmation...', 'Paiement validé !'];
+
+            let step = 0;
+            const interval = setInterval(() => {
+                step++;
+                const statusEl = document.getElementById('payStatus');
+                if (statusEl && steps[step]) statusEl.textContent = steps[step];
+                const ring = document.getElementById('progressRing');
+                if (ring) ring.style.strokeDashoffset = 220 - (220 * step / steps.length);
+                if (step >= steps.length - 1) {
+                    clearInterval(interval);
+                    setTimeout(() => completeOrder(phpMethod, amount, addr), 600);
+                }
+            }, 900);
+        }
+
+        async function completeOrder(phpMethod, amount, addr) {
+            try {
+                const orderPayload = {
+                    methode_paiement: phpMethod,
+                    adresse:          addr.address,
+                    ville:            addr.zone || 'Abidjan',
+                    quartier:         addr.zone,
+                    telephone:        addr.phone,
+                    latitude:         gpsPosition?.lat || null,
+                    longitude:        gpsPosition?.lng || null,
+                    note:             document.getElementById('notes')?.value || '',
+                    code_promo:       promoApplied?.code || '',
+                    // Extra paiement
+                    telephone_paiement: document.getElementById('mobileNum')?.value || addr.phone,
+                    card_number:      document.getElementById('cardNum')?.value || '',
+                    expiry:           document.getElementById('cardExp')?.value || '',
+                    cvv:              document.getElementById('cardCvv')?.value || '',
+                };
+
+                const normalizedPayload = {
+                    mode_paiement: phpMethod,
+                    adresse_livraison: addr.address,
+                    adresse: addr.address,
+                    total: amount,
+                    items: cartData.items,
+                    code_promo: promoApplied?.code || '',
+                };
+                const res = await API.commandes.create(normalizedPayload);
+
+                if (res?.success) {
+                    const orderId  = res.commande?.id || Date.now();
+                    const orderNum = res.commande?.reference || ('SX-'+String(Math.floor(Math.random()*999)+1).padStart(3,'0'));
+                    showSuccess(orderId, orderNum, null);
+                } else {
+                    throw new Error(res?.error || 'Erreur lors de la création de la commande');
+                }
+            } catch(e) {
+                console.error(e);
+                showToast('Erreur : '+e.message, 'error');
+            }
+        }
+
+        function showSuccess(orderId, orderNum, qrCode) {
+            document.getElementById('payModalContent').innerHTML = `
+                <div style="text-align:center">
+                    <i class="fas fa-check-circle success-check"></i>
+                    <div class="pay-modal-title" style="color:var(--success)">Commande confirmée !</div>
+                    <div style="font-family:'Barlow Condensed',sans-serif;font-size:22px;font-weight:900;color:var(--text);margin:8px 0">${orderNum}</div>
+                    <div style="color:var(--text2);font-size:13px;margin-bottom:20px">
+                        Votre commande a été enregistrée avec succès.<br>
+                        Vous recevrez une notification de suivi.
+                    </div>
+                    ${qrCode ? `<div style="margin-bottom:16px"><img src="${qrCode}" style="width:120px;height:120px;border-radius:8px;border:1px solid var(--border);padding:6px;background:#fff" alt="QR Code"></div>` : ''}
+                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+                        <button class="sx-btn sx-btn-orange" onclick="window.location.href='suivi.html?id=${orderId}'" style="justify-content:center;padding:12px">
+                            <i class="fas fa-map-marker-alt"></i> Suivre la livraison
+                        </button>
+                        <button class="sx-btn sx-btn-ghost" onclick="window.location.href='commandes.html'" style="justify-content:center;padding:12px">
+                            <i class="fas fa-box"></i> Mes commandes
+                        </button>
+                    </div>
+                </div>`;
+        }
+
+        load();
+    </script>
+</body>
+</html>
